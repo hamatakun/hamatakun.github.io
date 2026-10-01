@@ -51,6 +51,7 @@ th:first-child,td:first-child{text-align:left}
       <div><label>想定販売価格（円）※空欄なら価格チェックのみ</label><input id="sr-sell" type="number" inputmode="numeric"></div>
       <div><label>送料・梱包費（円）</label><input id="sr-ship" type="number" inputmode="numeric" value="1000"></div>
       <div><label>除外ワード（スペース区切り）</label><input id="sr-ex" placeholder="例: バッテリ 充電器"></div>
+      <div><label>絞り込み</label><label style="display:flex;gap:6px;align-items:center;color:var(--tx);font-size:14px;padding-top:8px"><input id="sr-ltd" type="checkbox" checked style="width:auto"> 期間限定・数量限定のみ</label></div>
     </div>
     <p><button class="b" id="sr-go">楽天で検索</button> <span class="note" id="sr-msg"></span></p>
     <p class="note">想定販売価格は、メルカリ・ヤフオクの「売り切れ」の直近価格を見て決めます。大型は送料が別のことが多いので、★のついた商品は商品ページで送料を確認してください。</p>
@@ -176,6 +177,9 @@ $("add").onclick=()=>{
 
 // 楽天 仕入れ検索
 let SR=[];
+// 期間限定の判定: 商品名にこれらの言葉を含み、かつ販促（ポイント倍・クーポン等）の言葉を含まないもの
+const LTD=["期間限定","数量限定","季節限定","店舗限定","限定生産","限定版","限定品","限定モデル","限定カラー","限定色","限定発売","限定"];
+const PROMO=["ポイント","p10","p5","p2","倍","クーポン","マラソン","セール","sale","off","最大","半額","送料無料期間","楽天スーパー"];
 async function doSearch(){
  const kw=$("sr-kw").value.trim(),msg=$("sr-msg");
  if(!API.id||!API.key){msg.textContent="⚙設定タブで、楽天のアプリIDとアクセスキーを入力してください。";return}
@@ -184,18 +188,27 @@ async function doSearch(){
  const excl=($("sr-ex").value+" "+S.excl).toLowerCase().split(/\s+/).filter(Boolean);
  msg.textContent="検索中…";$("sr-go").disabled=true;
  try{
-  const q=new URLSearchParams({applicationId:API.id,accessKey:API.key,keyword:kw,sort:"+itemPrice",hits:30,availability:1,format:"json"});
-  const r=await fetch("https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260701?"+q);
-  const d=await r.json().catch(()=>({}));
-  if(!r.ok){msg.textContent="エラー "+r.status+"："+(d.errors?.errorMessage||d.error_description||"楽天APIに接続できませんでした");return}
+  const ltd=$("sr-ltd").checked;
+  const q=new URLSearchParams({applicationId:API.id,accessKey:API.key,keyword:ltd?kw+" 限定":kw,sort:ltd?"standard":"+itemPrice",hits:30,availability:1,format:"json"});
+  let raw=[];
+  for(let pg=1;pg<=(ltd?3:1);pg++){
+   q.set("page",pg);
+   const r=await fetch("https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260701?"+q);
+   const d=await r.json().catch(()=>({}));
+   if(!r.ok){if(pg===1){msg.textContent="エラー "+r.status+"："+(d.errors?.errorMessage||d.error_description||"楽天APIに接続できませんでした");return}break}
+   raw=raw.concat((d.Items||d.items||[]).map(x=>x.Item||x));
+   if((d.pageCount||1)<=pg)break;
+   if(pg<3&&ltd){msg.textContent=`検索中…(${pg}/3)`;await new Promise(r=>setTimeout(r,1100))}
+  }
   const seen=new Set();
-  SR=(d.Items||d.items||[]).map(x=>x.Item||x).filter(it=>{
+  SR=raw.map(it=>({it,tag:ltd?LTD.find(w=>it.itemName.includes(w)):""})).filter(({it,tag})=>{
    const n=it.itemName.toLowerCase(),p=+it.itemPrice;
+   if(ltd&&(!tag||PROMO.some(w=>n.includes(w))))return false;
    if(excl.some(w=>n.includes(w))||seen.has(n))return false;seen.add(n);
-   return !sell||(p>=sell*S.lo/100&&p<=sell*S.hi/100)}).map(it=>{
+   return !sell||(p>=sell*S.lo/100&&p<=sell*S.hi/100)}).map(({it,tag})=>{
    const buy=+it.itemPrice;
    const b=sell?S.plat.map(p=>({p,...calc(p,sell,buy,ship)})).reduce((a,c)=>c.profit>a.profit?c:a):null;
-   return{name:it.itemName,buy,url:it.itemUrl,shop:it.shopName,free:it.postageFlag===0,sell,ship,b}});
+   return{name:it.itemName,buy,url:it.itemUrl,shop:it.shopName,free:it.postageFlag===0,sell,ship,b,tag}});
   if(sell)SR.sort((a,c)=>c.b.profit-a.b.profit);
   msg.textContent=SR.length?`${SR.length}件`:"条件に合う商品がありませんでした。キーワードや価格帯を見直してください。";
   renderSR();
@@ -205,7 +218,7 @@ async function doSearch(){
 function renderSR(){
  $("sr-tbl").innerHTML=SR.length?`<tr><th>商品</th><th>仕入れ</th><th>送料</th><th>利益</th><th>ROI</th><th></th></tr>`+
  SR.map((s,i)=>{const ok=s.b&&s.b.profit>=S.minP&&s.b.roi>=S.minR;
- return`<tr class="${ok?"best":""}"><td style="white-space:normal;min-width:220px"><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name.slice(0,60))}</a><br><span class="note">${esc(s.shop)}</span></td>
+ return`<tr class="${ok?"best":""}"><td style="white-space:normal;min-width:220px"><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name.slice(0,60))}</a><br><span class="note">${s.tag?`🏷${esc(s.tag)} ／ `:""}${esc(s.shop)}</span></td>
  <td>${yen(s.buy)}</td><td>${s.free?"込":"別★"}</td>
  <td class="${s.b?(s.b.profit>=0?"pos":"neg"):""}">${s.b?yen(s.b.profit)+"<br><span class=note>"+esc(s.b.p.n)+"</span>":"-"}</td>
  <td>${s.b?s.b.roi.toFixed(0)+"%":"-"}</td>
