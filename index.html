@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>せどりナビ</title>
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--tx:#1d2330;--sub:#6b7385;--line:#e2e5ec;--pri:#2f6bff;--ok:#12a150;--warn:#e69500;--ng:#d93636}
+@media(prefers-color-scheme:dark){:root{--bg:#12151c;--card:#1b2029;--tx:#e8ebf2;--sub:#98a1b5;--line:#2c3342;--pri:#6b94ff;--ok:#3ccf7e;--warn:#f2b441;--ng:#ff6b6b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.6 system-ui,"Hiragino Sans","Meiryo",sans-serif}
+header{padding:16px;max-width:900px;margin:auto}
+h1{margin:0;font-size:22px}header p{margin:2px 0 0;color:var(--sub);font-size:13px}
+nav{display:flex;gap:6px;max-width:900px;margin:0 auto;padding:0 16px}
+nav button{flex:1;padding:10px;border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:10px 10px 0 0;font:inherit;cursor:pointer}
+nav button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+main{max-width:900px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+label{display:block;font-size:12px;color:var(--sub)}
+input,select{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+button.b{padding:9px 14px;border:0;border-radius:8px;background:var(--pri);color:#fff;font:inherit;cursor:pointer}
+button.g{background:transparent;color:var(--sub);border:1px solid var(--line)}
+.verdict{border-radius:12px;padding:16px;text-align:center;color:#fff;margin-bottom:14px}
+.verdict .big{font-size:30px;font-weight:700}
+.go{background:var(--ok)}.maybe{background:var(--warn)}.no{background:var(--ng)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+.scroll{overflow-x:auto}
+.best{background:color-mix(in srgb,var(--ok) 15%,transparent);font-weight:600}
+.pos{color:var(--ok)}.neg{color:var(--ng)}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.kpi div{background:var(--bg);border-radius:10px;padding:10px}
+.kpi b{display:block;font-size:20px}.kpi span{font-size:12px;color:var(--sub)}
+.bar{height:12px;background:var(--bg);border-radius:6px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--pri)}
+.note{font-size:12px;color:var(--sub)}
+.hide{display:none}
+</style>
+</head>
+<body>
+<header><h1>📦 せどりナビ</h1><p>仕入れる前の「GO/NG判定」と、売った後の「利益管理」をひとつに。データはこのブラウザ内だけに保存されます。</p></header>
+<nav id="tabs"></nav>
+<main>
+
+<section id="t-search">
+  <div class="card">
+    <div class="grid">
+      <div><label>検索キーワード（型番・商品名）</label><input id="sr-kw" placeholder="例: マキタ TD173D"></div>
+      <div><label>想定販売価格（円）※空欄なら価格チェックのみ</label><input id="sr-sell" type="number" inputmode="numeric"></div>
+      <div><label>送料・梱包費（円）</label><input id="sr-ship" type="number" inputmode="numeric" value="1000"></div>
+      <div><label>除外ワード（スペース区切り）</label><input id="sr-ex" placeholder="例: バッテリ 充電器"></div>
+    </div>
+    <p><button class="b" id="sr-go">楽天で検索</button> <span class="note" id="sr-msg"></span></p>
+    <p class="note">想定販売価格は、メルカリ・ヤフオクの「売り切れ」の直近価格を見て決めます。大型は送料が別のことが多いので、★のついた商品は商品ページで送料を確認してください。</p>
+  </div>
+  <div class="card scroll"><table id="sr-tbl"></table></div>
+</section>
+
+<section id="t-judge" class="hide">
+  <div class="card">
+    <div class="grid">
+      <div><label>商品名（任意）</label><input id="name" placeholder="例: ○○ ゲームソフト"></div>
+      <div><label>仕入れ価格（円）</label><input id="buy" type="number" inputmode="numeric"></div>
+      <div><label>想定販売価格（円）</label><input id="sell" type="number" inputmode="numeric"></div>
+      <div><label>送料・梱包費（円）</label><input id="ship" type="number" inputmode="numeric" value="200"></div>
+      <div><label>1か月の販売見込み（個）</label><input id="vol" type="number" inputmode="numeric" placeholder="分かれば"></div>
+    </div>
+    <p class="note">ヒント：想定販売価格は、メルカリの「売り切れ」の直近価格やAmazonの価格推移から決めると外れにくいです。<b>出品中の価格ではなく売れた価格</b>を見ましょう。</p>
+  </div>
+  <div id="verdict"></div>
+  <div class="card"><b>販売先ごとの比較</b>
+    <div class="scroll"><table id="cmp"></table></div>
+    <p class="note" id="be"></p>
+    <p><button class="b" id="add">この商品を台帳に追加</button></p>
+  </div>
+</section>
+
+<section id="t-ledger" class="hide">
+  <div class="card"><div class="kpi" id="kpi"></div>
+    <div style="margin-top:12px" class="note">副業の所得20万円ラインまでの進捗（給与所得者は年間の所得が20万円超で確定申告が必要。※目安）</div>
+    <div class="bar"><i id="tax"></i></div><div class="note" id="taxl"></div>
+  </div>
+  <div class="card scroll"><table id="led"></table>
+    <p class="note" id="empty">まだ商品がありません。「判定」タブから追加できます。</p></div>
+  <button class="b g" id="csv">CSVで書き出し</button>
+</section>
+
+<section id="t-set" class="hide">
+  <div class="card"><b>判定の基準</b>
+    <div class="grid" style="margin-top:8px">
+      <div><label>最低利益（円）</label><input id="minP" type="number"></div>
+      <div><label>最低ROI（%）＝利益÷仕入れ</label><input id="minR" type="number"></div>
+    </div>
+  </div>
+  <div class="card"><b>楽天API（このブラウザにだけ保存されます）</b>
+    <p class="note">楽天ウェブサービスで発行したアプリIDとアクセスキーを入力します。サイトのコードには含まれません。</p>
+    <div class="grid">
+      <div><label>アプリID</label><input id="apiId" autocomplete="off"></div>
+      <div><label>アクセスキー</label><input id="apiKey" type="password" autocomplete="off"></div>
+      <div><label>仕入れ価格の下限（売値の%）</label><input id="lo" type="number"></div>
+      <div><label>仕入れ価格の上限（売値の%）</label><input id="hi" type="number"></div>
+    </div>
+    <label style="margin-top:8px">常に除外する言葉（スペース区切り）</label><input id="excl">
+    <p class="note">下限・上限は、付属品や部品など極端に安い商品を除くための範囲です。</p>
+  </div>
+  <div class="card"><b>販売先と手数料</b>
+    <p class="note">手数料率は改定されることがあります。必ず各サービスの最新情報で確認して書き換えてください。（初期値は目安）</p>
+    <div class="scroll"><table id="plat"></table></div>
+    <p><button class="b g" id="addPlat">販売先を追加</button></p>
+  </div>
+  <div class="card"><b>データ</b><p><button class="b g" id="reset">全データを削除</button></p></div>
+</section>
+
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const yen=n=>(n<0?"-":"")+"¥"+Math.abs(Math.round(n)).toLocaleString();
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
+const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+let S=load("sd_set",{minP:500,minR:20,plat:[
+ {n:"メルカリ",r:10,f:0},{n:"ラクマ",r:6,f:0},{n:"Yahoo!フリマ",r:5,f:0},{n:"Amazon FBA",r:10,f:400}]});
+let L=load("sd_led",[]);
+S.lo??=25;S.hi??=85;
+S.excl??="ケース カバー ケーブル アダプタ パーツ ばら売り バラ売り フィルム 保護 中古 訳あり ジャンク 福袋";
+let API=load("sd_api",{id:"",key:""});
+const persist=()=>{save("sd_set",S);save("sd_led",L);save("sd_api",API)};
+
+// tabs
+const T=[["search","🛒 仕入れ検索"],["judge","🔍 仕入れ判定"],["ledger","📒 利益台帳"],["set","⚙ 設定"]];
+$("tabs").innerHTML=T.map(([k,l])=>`<button data-k="${k}">${l}</button>`).join("");
+function show(k){T.forEach(([x])=>$("t-"+x).classList.toggle("hide",x!==k));
+ [...$("tabs").children].forEach(b=>b.classList.toggle("on",b.dataset.k===k));
+ if(k==="ledger")renderLedger();if(k==="set")renderSet();}
+$("tabs").onclick=e=>e.target.dataset.k&&show(e.target.dataset.k);
+
+// calc
+const calc=(p,sell,buy,ship)=>{const fee=sell*p.r/100+p.f;const profit=sell-fee-ship-buy;
+ return{fee,profit,roi:buy>0?profit/buy*100:0,margin:sell>0?profit/sell*100:0,
+  be:(sell-sell*p.r/100-p.f-ship)}};
+function judge(){
+ const buy=+$("buy").value,sell=+$("sell").value,ship=+$("ship").value||0,vol=+$("vol").value;
+ if(!buy||!sell){$("verdict").innerHTML="";$("cmp").innerHTML="";$("be").textContent="仕入れ価格と販売価格を入れると判定します。";return}
+ const rows=S.plat.map(p=>({p,...calc(p,sell,buy,ship)}));
+ const best=rows.reduce((a,b)=>b.profit>a.profit?b:a);
+ const okP=best.profit>=S.minP,okR=best.roi>=S.minR;
+ let cls="no",title="見送り",why=[];
+ if(okP&&okR){cls="go";title="GO！仕入れOK"}
+ else if(best.profit>0&&(okP||okR)){cls="maybe";title="要検討"}
+ if(!okP)why.push(`利益が基準(${yen(S.minP)})未満`);
+ if(!okR)why.push(`ROIが基準(${S.minR}%)未満`);
+ if(best.profit<=0)why=["赤字になります"];
+ let extra="";
+ if(vol>0&&best.profit>0)extra=`／月${vol}個売れれば月利益 約${yen(best.profit*vol)}`;
+ $("verdict").innerHTML=`<div class="verdict ${cls}"><div class="big">${title}</div>
+  <div>最良: ${esc(best.p.n)} で利益 ${yen(best.profit)}（ROI ${best.roi.toFixed(0)}%）${extra}</div>
+  ${why.length&&cls!=="go"?`<div style="font-size:13px;opacity:.9">${why.join("・")}</div>`:""}</div>`;
+ $("cmp").innerHTML=`<tr><th>販売先</th><th>手数料</th><th>利益</th><th>利益率</th><th>ROI</th><th>この利益を保てる最大仕入れ値</th></tr>`+
+  rows.map(r=>{const maxBuy=Math.max(0,r.be-S.minP);
+  return`<tr class="${r===best?"best":""}"><td>${esc(r.p.n)}${r===best?" ★":""}</td><td>${yen(r.fee)}</td>
+  <td class="${r.profit>=0?"pos":"neg"}">${yen(r.profit)}</td><td>${r.margin.toFixed(1)}%</td><td>${r.roi.toFixed(0)}%</td><td>${yen(maxBuy)}</td></tr>`}).join("");
+ $("be").textContent=`「最大仕入れ値」は最低利益(${yen(S.minP)})を確保できる仕入れ上限です。値切り交渉や店頭での上限判断に使えます。`;
+}
+["buy","sell","ship","vol"].forEach(i=>$(i).oninput=judge);
+
+$("add").onclick=()=>{
+ const buy=+$("buy").value,sell=+$("sell").value;if(!buy||!sell)return alert("仕入れ価格と販売価格を入力してください");
+ const rows=S.plat.map(p=>({p,...calc(p,sell,buy,+$("ship").value||0)}));
+ const best=rows.reduce((a,b)=>b.profit>a.profit?b:a);
+ L.unshift({id:Date.now(),name:$("name").value||"(名称なし)",buy,list:sell,ship:+$("ship").value||0,
+  plat:best.p.n,status:"在庫",bd:new Date().toISOString().slice(0,10),sold:null,sd:null});
+ persist();show("ledger")};
+
+// 楽天 仕入れ検索
+let SR=[];
+async function doSearch(){
+ const kw=$("sr-kw").value.trim(),msg=$("sr-msg");
+ if(!API.id||!API.key){msg.textContent="⚙設定タブで、楽天のアプリIDとアクセスキーを入力してください。";return}
+ if(!kw){msg.textContent="キーワードを入力してください。";return}
+ const sell=+$("sr-sell").value||0,ship=+$("sr-ship").value||0;
+ const excl=($("sr-ex").value+" "+S.excl).toLowerCase().split(/\s+/).filter(Boolean);
+ msg.textContent="検索中…";$("sr-go").disabled=true;
+ try{
+  const q=new URLSearchParams({applicationId:API.id,accessKey:API.key,keyword:kw,sort:"+itemPrice",hits:30,availability:1,format:"json"});
+  const r=await fetch("https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260701?"+q);
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok){msg.textContent="エラー "+r.status+"："+(d.errors?.errorMessage||d.error_description||"楽天APIに接続できませんでした");return}
+  const seen=new Set();
+  SR=(d.Items||d.items||[]).map(x=>x.Item||x).filter(it=>{
+   const n=it.itemName.toLowerCase(),p=+it.itemPrice;
+   if(excl.some(w=>n.includes(w))||seen.has(n))return false;seen.add(n);
+   return !sell||(p>=sell*S.lo/100&&p<=sell*S.hi/100)}).map(it=>{
+   const buy=+it.itemPrice;
+   const b=sell?S.plat.map(p=>({p,...calc(p,sell,buy,ship)})).reduce((a,c)=>c.profit>a.profit?c:a):null;
+   return{name:it.itemName,buy,url:it.itemUrl,shop:it.shopName,free:it.postageFlag===0,sell,ship,b}});
+  if(sell)SR.sort((a,c)=>c.b.profit-a.b.profit);
+  msg.textContent=SR.length?`${SR.length}件`:"条件に合う商品がありませんでした。キーワードや価格帯を見直してください。";
+  renderSR();
+ }catch(e){msg.textContent="通信に失敗しました。許可したサイトのURLから開いているか確認してください。（"+e.message+"）"}
+ finally{$("sr-go").disabled=false}
+}
+function renderSR(){
+ $("sr-tbl").innerHTML=SR.length?`<tr><th>商品</th><th>仕入れ</th><th>送料</th><th>利益</th><th>ROI</th><th></th></tr>`+
+ SR.map((s,i)=>{const ok=s.b&&s.b.profit>=S.minP&&s.b.roi>=S.minR;
+ return`<tr class="${ok?"best":""}"><td style="white-space:normal;min-width:220px"><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name.slice(0,60))}</a><br><span class="note">${esc(s.shop)}</span></td>
+ <td>${yen(s.buy)}</td><td>${s.free?"込":"別★"}</td>
+ <td class="${s.b?(s.b.profit>=0?"pos":"neg"):""}">${s.b?yen(s.b.profit)+"<br><span class=note>"+esc(s.b.p.n)+"</span>":"-"}</td>
+ <td>${s.b?s.b.roi.toFixed(0)+"%":"-"}</td>
+ <td>${s.sell?`<button class="b g" data-add="${i}">台帳へ</button>`:""}</td></tr>`}).join(""):"";
+}
+$("sr-go").onclick=doSearch;
+$("sr-kw").onkeydown=e=>e.key==="Enter"&&doSearch();
+$("sr-tbl").onclick=e=>{const i=e.target.dataset.add;if(i==null)return;const s=SR[i];
+ L.unshift({id:Date.now(),name:s.name.slice(0,80),url:s.url,buy:s.buy,list:s.sell,ship:s.ship,plat:s.b.p.n,status:"在庫",bd:new Date().toISOString().slice(0,10),sold:null,sd:null});
+ persist();e.target.textContent="追加済";e.target.disabled=true};
+
+// ledger
+const pl=n=>S.plat.find(p=>p.n===n)||{r:10,f:0};
+const itemProfit=i=>{const p=pl(i.plat);return i.sold-i.sold*p.r/100-p.f-i.ship-i.buy};
+function renderLedger(){
+ const sold=L.filter(i=>i.status==="売却済"),stock=L.filter(i=>i.status!=="売却済");
+ const profit=sold.reduce((a,i)=>a+itemProfit(i),0),rev=sold.reduce((a,i)=>a+i.sold,0);
+ const stockCost=stock.reduce((a,i)=>a+i.buy,0);
+ const days=sold.length?sold.reduce((a,i)=>a+Math.max(0,(new Date(i.sd)-new Date(i.bd))/864e5),0)/sold.length:0;
+ $("kpi").innerHTML=[["確定利益",yen(profit)],["売上",yen(rev)],["在庫の仕入れ総額",yen(stockCost)],
+  ["売れた数",sold.length+"個"],["平均 売却日数",sold.length?days.toFixed(1)+"日":"-"],
+  ["平均利益率",rev?(profit/rev*100).toFixed(1)+"%":"-"]].map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join("");
+ const yr=new Date().getFullYear();
+ const yp=sold.filter(i=>i.sd&&i.sd.startsWith(yr)).reduce((a,i)=>a+itemProfit(i),0);
+ $("tax").style.width=Math.min(100,Math.max(0,yp/200000*100))+"%";
+ $("taxl").textContent=`${yr}年の利益 ${yen(yp)} / ${yen(200000)}（経費を引いた所得で判定されます。詳細は税務署や税理士へ）`;
+ $("empty").classList.toggle("hide",L.length>0);
+ $("led").innerHTML=L.length?`<tr><th>商品</th><th>仕入れ</th><th>販売先</th><th>状態</th><th>売値</th><th>利益</th><th></th></tr>`+
+ L.map(i=>`<tr><td>${/^https:\/\//.test(i.url||"")?`<a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.name)}</a>`:esc(i.name)}${i.status!=="売却済"?`<br><span class="note">保管 ${Math.max(0,Math.floor((Date.now()-new Date(i.bd))/864e5))}日目</span>`:""}</td><td>${yen(i.buy)}</td>
+ <td><select data-id="${i.id}" data-f="plat">${S.plat.map(p=>`<option${p.n===i.plat?" selected":""}>${esc(p.n)}</option>`).join("")}</select></td>
+ <td><select data-id="${i.id}" data-f="status">${["在庫","出品中","売却済"].map(s=>`<option${s===i.status?" selected":""}>${s}</option>`).join("")}</select></td>
+ <td><input style="width:90px" type="number" data-id="${i.id}" data-f="${i.status==="売却済"?"sold":"list"}" value="${i.status==="売却済"?(i.sold??""):i.list}"></td>
+ <td class="${i.status==="売却済"?(itemProfit(i)>=0?"pos":"neg"):""}">${i.status==="売却済"?yen(itemProfit(i)):"予 "+yen(calc(pl(i.plat),i.list,i.buy,i.ship).profit)}</td>
+ <td><button class="b g" data-del="${i.id}">✕</button></td></tr>`).join(""):"";
+}
+$("led").onchange=e=>{const t=e.target,i=L.find(x=>x.id==t.dataset.id);if(!i)return;
+ const f=t.dataset.f;i[f]=t.type==="number"?+t.value:t.value;
+ if(f==="status"&&t.value==="売却済"){i.sold=i.sold??i.list;i.sd=new Date().toISOString().slice(0,10)}
+ persist();renderLedger()};
+$("led").onclick=e=>{const d=e.target.dataset.del;if(d&&confirm("削除しますか？")){L=L.filter(x=>x.id!=d);persist();renderLedger()}};
+$("csv").onclick=()=>{const h="商品,仕入れ,販売先,状態,予定売値,売却額,仕入日,売却日,利益\n";
+ const c=L.map(i=>[i.name,i.buy,i.plat,i.status,i.list,i.sold??"",i.bd,i.sd??"",i.status==="売却済"?Math.round(itemProfit(i)):""]
+  .map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\n");
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+h+c],{type:"text/csv"}));
+ a.download="sedori.csv";a.click()};
+
+// settings
+function renderSet(){$("minP").value=S.minP;$("minR").value=S.minR;
+ $("apiId").value=API.id;$("apiKey").value=API.key;$("lo").value=S.lo;$("hi").value=S.hi;$("excl").value=S.excl;
+ $("plat").innerHTML=`<tr><th>名前</th><th>手数料率(%)</th><th>固定費(円)</th><th></th></tr>`+
+ S.plat.map((p,k)=>`<tr><td><input data-k="${k}" data-f="n" value="${esc(p.n)}"></td>
+ <td><input type="number" step="0.1" data-k="${k}" data-f="r" value="${p.r}"></td>
+ <td><input type="number" data-k="${k}" data-f="f" value="${p.f}"></td>
+ <td><button class="b g" data-d="${k}">✕</button></td></tr>`).join("")}
+$("minP").oninput=e=>{S.minP=+e.target.value;persist()};
+$("minR").oninput=e=>{S.minR=+e.target.value;persist()};
+$("apiId").oninput=e=>{API.id=e.target.value.trim();persist()};
+$("apiKey").oninput=e=>{API.key=e.target.value.trim();persist()};
+$("lo").oninput=e=>{S.lo=+e.target.value;persist()};
+$("hi").oninput=e=>{S.hi=+e.target.value;persist()};
+$("excl").oninput=e=>{S.excl=e.target.value;persist()};
+$("plat").onchange=e=>{const t=e.target,k=t.dataset.k;if(k==null)return;
+ const f=t.dataset.f;const old=S.plat[k].n;S.plat[k][f]=f==="n"?t.value:+t.value;
+ if(f==="n")L.forEach(i=>{if(i.plat===old)i.plat=t.value});persist();judge()};
+$("plat").onclick=e=>{const d=e.target.dataset.d;if(d!=null&&S.plat.length>1){S.plat.splice(d,1);persist();renderSet();judge()}};
+$("addPlat").onclick=()=>{S.plat.push({n:"新しい販売先",r:10,f:0});persist();renderSet()};
+$("reset").onclick=()=>{if(confirm("台帳と設定をすべて削除します。よろしいですか？")){try{localStorage.clear()}catch{}location.reload()}};
+
+show("search");judge();
+</script>
+</body>
+</html>
