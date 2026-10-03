@@ -111,6 +111,15 @@ th:first-child,td:first-child{text-align:left}
     <div class="scroll"><table id="plat"></table></div>
     <p><button class="b g" id="addPlat">販売先を追加</button></p>
   </div>
+  <div class="card"><b>☁ クラウド連携（Googleスプレッドシート）</b>
+    <p class="note">台帳をスプレッドシートに保存・復元します。設定手順は gas/README.md を参照してください。</p>
+    <div class="grid">
+      <div><label>ウェブアプリURL</label><input id="gUrl" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec"></div>
+      <div><label>合言葉</label><input id="gTok" type="password" autocomplete="off"></div>
+    </div>
+    <p><button class="b" id="gPush">クラウドに保存</button> <button class="b g" id="gPull">クラウドから読込</button></p>
+    <p class="note" id="gMsg"></p>
+  </div>
   <div class="card"><b>データ</b><p><button class="b g" id="reset">全データを削除</button></p></div>
 </section>
 
@@ -128,6 +137,7 @@ let L=load("sd_led",[]);
 S.lo??=25;S.hi??=85;
 S.excl??="ケース カバー ケーブル アダプタ パーツ ばら売り バラ売り フィルム 保護 中古 訳あり ジャンク 福袋";
 let API=load("sd_api",{id:"",key:""});
+let G=load("sd_cloud",{url:"",tok:"",last:""});
 const persist=()=>{save("sd_set",S);save("sd_led",L);save("sd_api",API)};
 
 // tabs
@@ -265,9 +275,26 @@ $("csv").onclick=()=>{const h="商品,仕入れ,販売先,状態,予定売値,�
  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+h+c],{type:"text/csv"}));
  a.download="sedori.csv";a.click()};
 
+// cloud (Google Sheets via Apps Script)
+const gMsg=t=>{$("gMsg").textContent=t};
+async function gCall(opt){
+ if(!/^https:\/\/script\.google\.com\//.test(G.url)||!G.tok)throw new Error("URLと合言葉を入力してください");
+ const r=opt?await fetch(G.url,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({token:G.tok,items:L})})
+  :await fetch(G.url+"?token="+encodeURIComponent(G.tok));
+ const j=await r.json();if(!j.ok)throw new Error(j.error||"失敗しました");return j}
+$("gPush").onclick=async()=>{gMsg("保存中…");
+ try{const j=await gCall(true);G.last=new Date().toLocaleString();save("sd_cloud",G);gMsg(`${j.count}件を保存しました（${G.last}）`)}
+ catch(e){gMsg("保存できませんでした："+e.message)}};
+$("gPull").onclick=async()=>{
+ if(!confirm("この端末の台帳をクラウドの内容で置き換えます。よろしいですか？"))return;gMsg("読込中…");
+ try{const j=await gCall();L=j.items;persist();renderLedger();G.last=new Date().toLocaleString();save("sd_cloud",G);gMsg(`${L.length}件を読み込みました（${G.last}）`)}
+ catch(e){gMsg("読み込めませんでした："+e.message)}};
+$("gUrl").oninput=e=>{G.url=e.target.value.trim();save("sd_cloud",G)};
+$("gTok").oninput=e=>{G.tok=e.target.value.trim();save("sd_cloud",G)};
+
 // settings
 function renderSet(){$("minP").value=S.minP;$("minR").value=S.minR;
- $("apiId").value=API.id;$("apiKey").value=API.key;$("lo").value=S.lo;$("hi").value=S.hi;$("excl").value=S.excl;
+ $("gUrl").value=G.url;$("gTok").value=G.tok;$("apiId").value=API.id;$("apiKey").value=API.key;$("lo").value=S.lo;$("hi").value=S.hi;$("excl").value=S.excl;
  $("plat").innerHTML=`<tr><th>名前</th><th>手数料率(%)</th><th>固定費(円)</th><th></th></tr>`+
  S.plat.map((p,k)=>`<tr><td><input data-k="${k}" data-f="n" value="${esc(p.n)}"></td>
  <td><input type="number" step="0.1" data-k="${k}" data-f="r" value="${p.r}"></td>
