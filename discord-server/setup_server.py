@@ -46,7 +46,8 @@ def print_plan(bp):
         print(f"  - {r['name']} {r.get('color', '')}{tag}")
     print("■ チャンネル")
     for cat in bp["categories"]:
-        tag = "（運営のみ閲覧可）" if cat.get("staff_only") else ""
+        tag = ("（運営のみ閲覧可）" if cat.get("staff_only")
+               else f"（{bp.get('members_role')}ロールのみ閲覧可）" if cat.get("members_only") else "")
         print(f"  [{cat['name']}]{tag}")
         for ch in cat["channels"]:
             kind = ch.get("type", "text")
@@ -109,13 +110,18 @@ async def build(bp, token, guild_id):
             if r.get("staff"):
                 staff_roles.append(role)
 
+        members_role = roles.get(bp.get("members_role", ""))
+
         # --- カテゴリとチャンネル ---
         for cat in bp["categories"]:
+            hidden = cat.get("staff_only") or cat.get("members_only")
             cat_over = {}
-            if cat.get("staff_only"):
+            if hidden:
                 cat_over[everyone] = discord.PermissionOverwrite(view_channel=False)
                 for sr in staff_roles:
                     cat_over[sr] = discord.PermissionOverwrite(view_channel=True)
+                if cat.get("members_only") and members_role:
+                    cat_over[members_role] = discord.PermissionOverwrite(view_channel=True)
             category = discord.utils.get(guild.categories, name=cat["name"])
             if category is None:
                 category = await guild.create_category(cat["name"], overwrites=cat_over)
@@ -128,8 +134,10 @@ async def build(bp, token, guild_id):
                     over[everyone] = discord.PermissionOverwrite(
                         send_messages=False, create_public_threads=False,
                         add_reactions=True,
-                        **({"view_channel": False} if cat.get("staff_only") else {}),
+                        **({"view_channel": False} if hidden else {}),
                     )
+                    if cat.get("members_only") and members_role:
+                        over[members_role] = discord.PermissionOverwrite(view_channel=True, send_messages=False)
                     for sr in staff_roles:
                         over[sr] = discord.PermissionOverwrite(view_channel=True, send_messages=True)
 
