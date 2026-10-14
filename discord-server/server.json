@@ -1,0 +1,82 @@
+{
+  "roles": [
+    { "name": "運営", "color": "#e74c3c", "hoist": true, "staff": true, "admin": true },
+    { "name": "モデレーター", "color": "#e67e22", "hoist": true, "staff": true },
+    { "name": "ベテラン配達員", "color": "#f1c40f", "hoist": true },
+    { "name": "配達員", "color": "#3498db" },
+    { "name": "Uber Eats", "color": "#06c167" },
+    { "name": "出前館", "color": "#e60012" },
+    { "name": "Wolt", "color": "#009de0" },
+    { "name": "menu", "color": "#ff6b00" },
+    { "name": "Rocket Now", "color": "#8e44ad" },
+    { "name": "自転車", "color": "#95a5a6" },
+    { "name": "原付・バイク", "color": "#95a5a6" },
+    { "name": "軽貨物", "color": "#95a5a6" },
+    { "name": "徒歩", "color": "#95a5a6" }
+  ],
+  "categories": [
+    {
+      "name": "📢 インフォメーション",
+      "channels": [
+        { "name": "📌ルール", "readonly": true, "topic": "最初に必ず読んでください", "post": "rules.md" },
+        { "name": "📣お知らせ", "readonly": true, "topic": "運営からのお知らせ" },
+        { "name": "👋はじめに", "readonly": true, "topic": "サーバーの使い方", "post": "welcome.md" },
+        { "name": "🙋自己紹介", "topic": "テンプレ：名前／地域／サービス／車両／配達歴／ひとこと" }
+      ]
+    },
+    {
+      "name": "💬 交流",
+      "channels": [
+        { "name": "💬雑談", "topic": "なんでも気軽に。配達以外の話もOK", "slowmode": 0 },
+        { "name": "📊今日の稼働報告", "topic": "テンプレ：サービス／稼働時間／件数／売上／ひとこと（スクショは個人情報を隠して）" },
+        { "name": "🔰初心者部屋", "topic": "始めたばかりの人向け。どんな質問でも歓迎" },
+        { "name": "😂配達あるある", "topic": "笑える・共感できる話。お客様や店舗が特定できる書き方はNG" }
+      ]
+    },
+    {
+      "name": "📰 情報発信",
+      "channels": [
+        { "name": "❓質問・相談", "type": "forum", "topic": "1つの質問につき1スレッド。解決したらタイトルに【解決】を" },
+        { "name": "🔥ブースト・クエスト情報", "topic": "インセンティブ・ピーク情報。地域と日時を必ず書く" },
+        { "name": "🍔uber-eats", "topic": "Uber Eats の仕様変更・報酬・攻略" },
+        { "name": "🍱出前館", "topic": "出前館の仕様変更・報酬・攻略" },
+        { "name": "🔵wolt", "topic": "Wolt の仕様変更・報酬・攻略" },
+        { "name": "🟠menu", "topic": "menu の仕様変更・報酬・攻略" },
+        { "name": "🚀その他サービス", "topic": "Rocket Now など、その他のサービス" },
+        { "name": "🗾地域情報", "type": "forum", "topic": "エリアごとにスレッドを作成（例：東京・渋谷）。駐輪場、トイレ、待機場所など" }
+      ]
+    },
+    {
+      "name": "🛵 装備・車両・安全",
+      "channels": [
+        { "name": "🚲自転車・バイク", "topic": "車種選び・メンテ・電動アシスト・バッテリー" },
+        { "name": "🎒装備・グッズ", "topic": "バッグ、スマホホルダー、雨具、防寒、モバイルバッテリー" },
+        { "name": "⚠️事故・トラブル相談", "topic": "事故・配達トラブル・アカウント停止など。緊急時は警察・119が先" }
+      ]
+    },
+    {
+      "name": "💰 お金・税金",
+      "channels": [
+        { "name": "🧾確定申告・経費", "topic": "開業届、青色申告、経費、インボイス。個別の税務判断は税理士・税務署へ" },
+        { "name": "🛡️保険・労災", "topic": "任意保険、労災特別加入、各社の補償制度" }
+      ]
+    },
+    {
+      "name": "🔊 ボイス",
+      "channels": [
+        { "name": "🛵稼働中おしゃべり", "type": "voice" },
+        { "name": "☕休憩ラウンジ", "type": "voice" },
+        { "name": "🎙️イベント", "type": "voice" }
+      ]
+    },
+    {
+      "name": "🛠 運営",
+      "staff_only": true,
+      "channels": [
+        { "name": "運営会議", "topic": "運営・モデレーター専用" },
+        { "name": "通報・対応ログ", "topic": "違反対応の記録" },
+        { "name": "運営VC", "type": "voice" }
+      ]
+    }
+  ]
+}
