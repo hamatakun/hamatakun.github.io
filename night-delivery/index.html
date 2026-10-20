@@ -17,8 +17,9 @@ h1{margin:0;font-size:20px}
 header p{margin:2px 0 0;color:var(--sub);font-size:12px}
 .bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;max-width:1100px;margin:0 auto;padding:0 16px 8px}
 .seg{display:flex;flex:1;min-width:260px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.seg button{flex:1;padding:10px 4px;border:0;background:var(--card);color:var(--tx);font:inherit;font-weight:600;cursor:pointer}
+.seg button{flex:1;padding:10px 4px;white-space:nowrap;border:0;background:var(--card);color:var(--tx);font:inherit;font-weight:600;cursor:pointer}
 .seg button+button{border-left:1px solid var(--line)}
+#plats button{flex:1 1 auto;font-size:14px;padding:10px 6px}
 .seg button.on{background:var(--pri);color:#fff}
 .btn{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--tx);font:inherit;cursor:pointer}
 .search{display:flex;gap:6px;flex:1;min-width:220px}
@@ -67,6 +68,9 @@ ul.tips{margin:0;padding-left:1.2em;font-size:14px}ul.tips li{margin:3px 0}
 .howto summary{padding:10px 12px;font-weight:700;cursor:pointer}
 .howto ol{margin:0;padding:0 14px 12px 34px;display:grid;gap:6px;font-size:14px}
 .howto b{color:#fff}
+#platnote{max-width:1100px;margin:0 auto;padding:0 16px 8px;color:var(--sub);font-size:13px}
+.pop .plat{margin-top:8px;padding-top:6px;border-top:1px solid var(--line);font-size:12px;color:var(--l3)}
+.unk{font-size:11px;font-weight:600;color:var(--sub);border:1px solid var(--line);border-radius:5px;padding:0 4px}
 #msg{max-width:1100px;margin:0 auto;padding:0 16px 8px;color:var(--l3);font-size:13px}
 </style>
 </head>
@@ -79,6 +83,9 @@ ul.tips{margin:0;padding-left:1.2em;font-size:14px}ul.tips li{margin:3px 0}
   <div class="seg" id="times">
     <button data-t="0">22〜24時</button><button data-t="1">0〜2時</button><button data-t="2">2時以降</button>
   </div>
+  <div class="seg" id="plats">
+    <button data-p="all">全部</button><button data-p="rocket">ロケットナウ</button><button data-p="uber">Uber Eats</button><button data-p="demae">出前館</button>
+  </div>
   <div class="search">
     <input id="q" list="names" placeholder="駅名で探す（例: 堀切菖蒲園）" autocomplete="off">
     <datalist id="names"></datalist>
@@ -87,9 +94,10 @@ ul.tips{margin:0;padding-left:1.2em;font-size:14px}ul.tips li{margin:3px 0}
 </div>
 <div class="howto">
   <details id="howto" open>
-    <summary>使い方（タップで閉じる）</summary>
+    <summary>使い方（タップで開く・閉じる）</summary>
     <ol>
       <li>上のボタンで<b>今の時間</b>を選ぶ（夜10時〜12時なら「22〜24時」）。</li>
+      <li>その下のボタンで<b>使うアプリ</b>を選ぶ（ロケットナウ・Uber Eats・出前館）。受付が終わる時間や、対応していない区市が反映される。</li>
       <li>地図の<b>赤やオレンジの駅</b>が、お店が開いていて注文が出やすい駅。指で広げて拡大すると、細かい駅の名前も出てくる。</li>
       <li>気になる<b>駅の●をタップ</b>すると、時間ごとのレベルとメモが出る。</li>
       <li>駅名がわかっているときは、<b>上の検索欄</b>に入れる（例：堀切菖蒲園）。</li>
@@ -97,6 +105,7 @@ ul.tips{margin:0;padding-left:1.2em;font-size:14px}ul.tips li{margin:3px 0}
     </ol>
   </details>
 </div>
+<p id="platnote" hidden></p>
 <p id="msg" hidden></p>
 <div id="map"></div>
 <main>
@@ -123,7 +132,7 @@ ul.tips{margin:0;padding-left:1.2em;font-size:14px}ul.tips li{margin:3px 0}
       <li>雨の日は全時間帯で注文が増えやすい一方、深夜の郊外は店が少ないので遠距離の依頼になりがち。</li>
     </ul>
   </div>
-  <p class="note">※この地図は、繁華街の分布・24時間営業チェーンの多い駅・乗り入れ路線の数・人口の多い住宅地などをもとにした<b>推定</b>です。実際の店舗数や注文数のデータではありません。お店の営業時間や、アプリごとの配達エリア・受付時間は日や店舗で変わるので、必ず各アプリで確認してください。<br>
+  <p class="note">※この地図は、繁華街の分布・24時間営業チェーンの多い駅・乗り入れ路線の数・人口の多い住宅地などをもとにした<b>推定</b>です。実際の店舗数や注文数のデータではありません。会社ごとの加盟店の数は公開されていないので、駅のレベルはどの会社でも同じで、会社を選ぶと受付時間と対応エリアだけが変わります（2026年10月時点のネット上の情報。Woltは2026年3月、menuは2026年9月に終了したという情報があるので入れていません）。お店の営業時間や、アプリごとの配達エリア・受付時間は日や店舗で変わるので、必ず各アプリで確認してください。<br>
   駅の位置：<a href="https://github.com/piuccio/open-data-jp-railway-stations" style="color:inherit">open-data-jp-railway-stations</a>（駅データ.jp ほか）。境界データ：国土数値情報（行政区域データ）国土交通省／スマートニュース メディア研究所 加工。背景地図：地理院タイル。</p>
 </main>
 <script src="lib/leaflet.js"></script>
@@ -561,8 +570,39 @@ const LABEL=["ほぼ無し","まばら","少なめ","そこそこ","多い","激
 const DESC=["深夜は期待できない","深夜に開いている店はわずか","開いている店は少なめ","駅前に遅くまで開く店がある","深夜営業の店が多い","深夜でも店が多く、注文も途切れにくい"];
 const TIMES=["22〜24時","0〜2時","2時以降"];
 const BLOB=[0,250,400,550,750,950]; // 勢力圏の半径(m)
-let t=0;
-try{const s=+localStorage.getItem("nd-t");if(s>=0&&s<=2)t=s}catch(e){}
+// デリバリー会社ごとの受付時間とエリア（2026年10月時点のネット上の情報。公式の一覧ではない）
+// hours: 時間帯ごとに 2=受付あり 1=一部・地域による 0=ほぼ受付なし
+// area: 対応が確認できた区市（前方一致）。書いていない区市は「対応未確認」として薄く表示
+const PLAT={
+  all:{name:"全部",hours:[2,2,2],note:""},
+  rocket:{name:"ロケットナウ",hours:[2,2,1],
+    note:"受付は7時〜翌4時。2時以降は4時で終わる。対応が確認できていない区市は薄く表示しています。",
+    area:["東京都:","横浜市","川崎市","相模原市","藤沢市","横須賀市","鎌倉市","逗子市","さいたま市","所沢市","川口市","川越市",
+      "千葉市","船橋市","松戸市","市川市","柏市","水戸市","ひたちなか市","日立市","那珂郡東海村","土浦市","取手市","守谷市","古河市",
+      "宇都宮市","鹿沼市","栃木市","小山市","佐野市","足利市","前橋市","高崎市","伊勢崎市","館林市","太田市","桐生市","みどり市"],
+    unconfirmed:["西多摩郡檜原村","西多摩郡奥多摩町"]},
+  uber:{name:"Uber Eats",hours:[2,2,2],note:"24時間受付。ただし深夜に注文できるのは開いている店だけ。"},
+  demae:{name:"出前館",hours:[2,1,0],note:"受付は深夜2時頃まで（地域や店によっては0時台に終わる）。2時以降はほぼ受付なし。"}
+};
+let t=0,plat="all";
+try{const s=+localStorage.getItem("nd-t");if(s>=0&&s<=2)t=s;const p=localStorage.getItem("nd-plat");if(PLAT[p])plat=p}catch(e){}
+const prefOf={};
+// その区市で今の会社が使えるか（エリアの情報がない会社は全部使える扱い）
+function covered(mu){
+  const a=PLAT[plat].area;if(!a)return true;
+  if((PLAT[plat].unconfirmed||[]).includes(mu))return false;
+  return a.some(x=>x.endsWith(":")?prefOf[mu]===x.slice(0,-1):mu.startsWith(x));
+}
+// 受付時間を反映したレベル
+function plv(l,mu,i){const h=PLAT[plat].hours[i];return h===0?0:h===1?Math.max(0,l-1):l}
+const lv=(s,i=t)=>plv(s.L[i],s.mu,i);
+const rk=s=>covered(s.mu)?lv(s):-1; // 並べ替え用：未確認のエリアは後ろへ
+function wardPlat(mu){
+  if(plat==="all")return "";
+  const P=PLAT[plat],h=P.hours[t];
+  return `<div class="plat">${P.name}：`+(covered(mu)?"":"この区市は対応が確認できていません。アプリで住所を入れて確認してください。")+
+    (h===0?"この時間はほぼ受付なし。":h===1?"この時間は地域や店によって受付が終わっている。":"")+(covered(mu)&&h===2?"この時間も受付あり。":"")+`</div>`;
+}
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -597,23 +637,22 @@ const dotLayer=L.layerGroup().addTo(map);
 const labelLayer=L.layerGroup().addTo(map);
 
 // 区市町村ポリゴン（うっすら）
-function styleFor(f){const l=areaOf(f.properties.n)[t];
+function styleFor(f){const n=f.properties.n,l=covered(n)?plv(areaOf(n)[t],n,t):0;
   return {color:"#5a6375",weight:1,opacity:.6,fillColor:COLORS[l],fillOpacity:l?0.05+l*0.025:0.02}}
 function wardPopup(n,p){
-  const a=areaOf(n),top=ST.filter(s=>s.mu===n).sort((x,y)=>y.L[t]-x.L[t]||y.k-x.k).slice(0,10);
-  return `<div class="pop"><h3>${esc(shortName(n))}</h3><div class="pf">${p} ・ 駅 ${ST.filter(s=>s.mu===n).length}</div>`+rows(a)+
+  const a=areaOf(n),top=ST.filter(s=>s.mu===n).sort((x,y)=>rk(y)-rk(x)||y.k-x.k).slice(0,10);
+  return `<div class="pop"><h3>${esc(shortName(n))}</h3><div class="pf">${p} ・ 駅 ${ST.filter(s=>s.mu===n).length}</div>`+rows([0,1,2].map(i=>plv(a[i],n,i)))+wardPlat(n)+
     (a[3]?`<p>${esc(a[3])}</p>`:"")+
     (top.length?`<div class="pf" style="margin-top:8px">${TIMES[t]}の上位駅</div><div class="top">`+
-      top.map(s=>`<button data-i="${s.i}" style="background:${COLORS[s.L[t]]};color:${s.L[t]<2?'#fff':'#111'}">${esc(s.n)}</button>`).join("")+`</div>`+
+      top.map(s=>`<button data-i="${s.i}" style="background:${COLORS[lv(s)]};color:${lv(s)<2?'#fff':'#111'}">${esc(s.n)}</button>`).join("")+`</div>`+
       `<button class="btn more" data-ward="${esc(n)}">この区市の駅をすべて見る</button>`:"")+`</div>`;
 }
 function stationPopup(s){
-  return `<div class="pop"><h3>${esc(s.n)}駅</h3><div class="pf">${s.pref} ${esc(shortName(s.mu))} ・ ${s.k}路線</div>`+rows(s.L)+
-    `<p>${esc(s.note||DESC[s.L[t]])}</p></div>`;
+  return `<div class="pop"><h3>${esc(s.n)}駅</h3><div class="pf">${s.pref} ${esc(shortName(s.mu))} ・ ${s.k}路線</div>`+rows([0,1,2].map(i=>lv(s,i)))+
+    `<p>${esc(s.note||DESC[lv(s)])}</p>`+wardPlat(s.mu)+`</div>`;
 }
 
 Promise.all([fetch("kanto.geojson").then(r=>r.json()),fetch("stations.json").then(r=>r.json())]).then(([g,stations])=>{
-  const prefOf={};
   geo=L.geoJSON(g,{style:styleFor,onEachFeature:(f,layer)=>{
     prefOf[f.properties.n]=f.properties.p;
     layer.on("click",e=>L.popup().setLatLng(e.latlng).setContent(wardPopup(f.properties.n,f.properties.p)).openOn(map));
@@ -630,7 +669,7 @@ Promise.all([fetch("kanto.geojson").then(r=>r.json()),fetch("stations.json").the
   });
   $("names").innerHTML=[...new Set(ST.map(s=>s.n))].map(n=>`<option value="${esc(n)}">`).join("");
   buildWardSelect(g);
-  setTime(t);
+  setPlat(plat);setTime(t);
 }).catch(e=>{$("map").insertAdjacentHTML("afterbegin",'<p style="position:absolute;z-index:999;padding:12px">データを読み込めませんでした。</p>');console.error(e)});
 
 function openStation(s,fly){
@@ -645,12 +684,12 @@ $("map").addEventListener("click",e=>{
 
 function restyle(){
   if(geo)geo.setStyle(styleFor);
-  ST.forEach((s,i)=>{const l=s.L[t];
-    blobs[i].setRadius(BLOB[l]).setStyle({fillColor:COLORS[l],fillOpacity:l>=2?0.10+l*0.03:0.08});
-    dotsL[i].setStyle({fillColor:COLORS[l],fillOpacity:1,opacity:l?1:.5,radius:2.5+l*1.1});
+  ST.forEach((s,i)=>{const l=lv(s),dim=!covered(s.mu);
+    blobs[i].setRadius(dim?0:BLOB[l]).setStyle({fillColor:COLORS[l],fillOpacity:l>=2?0.10+l*0.03:0.08});
+    dotsL[i].setStyle({fillColor:COLORS[l],fillOpacity:dim?.25:1,opacity:dim?.3:l?1:.5,radius:dim?2.5:2.5+l*1.1});
   });
   // 上位の駅を手前に
-  ST.slice().sort((a,b)=>a.L[t]-b.L[t]).forEach(s=>{if(s.L[t]>=3)dotsL[s.i].bringToFront()});
+  ST.slice().sort((a,b)=>rk(a)-rk(b)).forEach(s=>{if(rk(s)>=3)dotsL[s.i].bringToFront()});
   updateLabels();
 }
 
@@ -659,16 +698,16 @@ function updateLabels(){
   labelLayer.clearLayers();
   const z=map.getZoom(),min=z>=14?0:z>=13?2:z>=12?3:z>=11?4:z>=10?5:9;
   const b=map.getBounds().pad(0.05),boxes=[];let n=0;
-  for(const s of ST.slice().sort((a,b)=>b.L[t]-a.L[t]||b.k-a.k)){
-    if(s.L[t]<min||n>=260)break;
+  for(const s of ST.slice().sort((a,b)=>rk(b)-rk(a)||b.k-a.k)){
+    if(rk(s)<min||n>=260)break;
     if(!b.contains([s.lat,s.lon]))continue;
     // レベルの高い駅を優先し、ほかの駅名と重なるものは出さない
-    const p=map.latLngToContainerPoint([s.lat,s.lon]),x=p.x+5+s.L[t],w=s.n.length*(s.L[t]>=5?13:11)+10;
+    const p=map.latLngToContainerPoint([s.lat,s.lon]),x=p.x+5+lv(s),w=s.n.length*(lv(s)>=5?13:11)+10;
     const box=[x,p.y-9,x+w,p.y+9];
     if(boxes.some(o=>box[0]<o[2]&&o[0]<box[2]&&box[1]<o[3]&&o[1]<box[3]))continue;
     boxes.push(box);
     labelLayer.addLayer(L.marker([s.lat,s.lon],{interactive:false,keyboard:false,
-      icon:L.divIcon({className:"lab",iconSize:[0,0],iconAnchor:[-(5+s.L[t]),0],html:`<span class="${s.L[t]>=5?'big':''}">${esc(s.n)}</span>`})}));
+      icon:L.divIcon({className:"lab",iconSize:[0,0],iconAnchor:[-(5+lv(s)),0],html:`<span class="${lv(s)>=5?'big':''}">${esc(s.n)}</span>`})}));
     n++;
   }
 }
@@ -690,11 +729,11 @@ let showAll=false;
 function renderRank(){
   const w=$("ward").value;
   $("rank-h").textContent=`狙い目の駅（${TIMES[t]}）`;
-  const list=ST.filter(s=>w?s.mu===w:s.L[t]>=3).sort((a,b)=>b.L[t]-a.L[t]||b.L[0]-a.L[0]||b.k-a.k);
+  const list=ST.filter(s=>w?s.mu===w:rk(s)>=3).sort((a,b)=>rk(b)-rk(a)||lv(b,0)-lv(a,0)||b.k-a.k);
   const lim=w?20:24;
   $("more").hidden=showAll||list.length<=lim;$("more").textContent=`もっと見る（全${list.length}駅）`;
   $("rank").innerHTML=(showAll?list:list.slice(0,lim)).map(s=>
-    `<button data-i="${s.i}">${lvlTag(s.L[t])}<span><b>${esc(s.n)}</b><small>${w?"":esc(shortName(s.mu))+"・"}${esc(s.note||DESC[s.L[t]])}</small></span></button>`).join("")||`<p class="note">この区市には駅がありません。</p>`;
+    `<button data-i="${s.i}">${lvlTag(lv(s))}<span><b>${esc(s.n)}${covered(s.mu)?"":' <span class="unk">対応未確認</span>'}</b><small>${w?"":esc(shortName(s.mu))+"・"}${esc(s.note||DESC[lv(s)])}</small></span></button>`).join("")||`<p class="note">この区市には駅がありません。</p>`;
 }
 $("ward").addEventListener("change",()=>{showAll=false;try{localStorage.setItem("nd-ward",$("ward").value)}catch(e){}
   const w=$("ward").value;renderRank();
@@ -716,6 +755,13 @@ $("q").addEventListener("change",search);
 $("q").addEventListener("keydown",e=>{if(e.key==="Enter")search()});
 
 // 時間帯切り替え
+function setPlat(p){plat=p;
+  try{localStorage.setItem("nd-plat",p)}catch(e){}
+  document.querySelectorAll("#plats button").forEach(b=>b.classList.toggle("on",b.dataset.p===plat));
+  $("platnote").textContent=PLAT[plat].note;$("platnote").hidden=!PLAT[plat].note;
+  map.closePopup();restyle();renderRank();
+}
+$("plats").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setPlat(b.dataset.p)});
 function setTime(n){t=n;
   try{localStorage.setItem("nd-t",n)}catch(e){}
   document.querySelectorAll("#times button").forEach(b=>b.classList.toggle("on",+b.dataset.t===t));
