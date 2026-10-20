@@ -63,6 +63,13 @@ main{max-width:1100px;margin:0 auto;padding:12px 16px 40px}
 .rank b{display:block;font-size:14px}.rank small{display:block;color:var(--sub);font-size:12px;line-height:1.45}
 .rank .lvl{flex:none;margin-top:2px}
 #more{margin-top:10px;width:100%}
+.picks{display:grid;gap:10px}
+.picks .grp b{display:block;font-size:12px;color:var(--sub);margin-bottom:4px}
+.picks .chips{display:flex;flex-wrap:wrap;gap:6px}
+.picks label{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border:1px solid var(--line);border-radius:999px;background:var(--bg);font-size:13px;cursor:pointer}
+.picks label.on{border-color:var(--pri)}
+.picks label i{font-style:normal;font-size:11px;color:var(--sub)}
+.picks input{margin:0;accent-color:var(--pri)}
 ul.tips{margin:0;padding-left:1.2em;font-size:14px}ul.tips li{margin:3px 0}
 .note{font-size:12px;color:var(--sub)}
 .howto{max-width:1100px;margin:0 auto 8px;padding:0 16px}
@@ -79,7 +86,7 @@ ul.tips{margin:0;padding-left:1.2em;font-size:14px}ul.tips li{margin:3px 0}
 <body>
 <header>
   <h1>🌙 深夜デリバリー分布図（関東）</h1>
-  <p>関東の約1,900駅を、駅から500m以内にある深夜営業チェーン（すき家・松屋・マック・ガスト・日高屋など）の店数で色分け。赤いほど店が多い。</p>
+  <p>関東の約1,900駅を、駅から500m以内にある深夜営業のデリバリー加盟チェーン（すき家・松屋・マック・ガスト・日高屋など）の店数で色分け。赤いほど店が多い。</p>
 </header>
 <div class="bar">
   <div class="seg" id="times">
@@ -100,10 +107,11 @@ ul.tips{margin:0;padding-left:1.2em;font-size:14px}ul.tips li{margin:3px 0}
     <ol>
       <li>上のボタンで<b>今の時間</b>を選ぶ（夜10時〜12時なら「22〜24時」）。</li>
       <li>その下のボタンで<b>使うアプリ</b>を選ぶ（ロケットナウ・Uber Eats・出前館）。受付が終わる時間や、対応していない区市が反映される。</li>
-      <li>●の色は、駅から500m以内にある<b>深夜営業チェーンの店数</b>。<b>赤</b>15店以上、<b>オレンジ</b>11〜14店、<b>黄</b>4〜10店、<b>緑</b>3店、<b>青</b>1〜2店、<b>灰</b>0店。指で広げて拡大すると、細かい駅の名前も出てくる。</li>
+      <li>●の色は、駅から500m以内にある<b>深夜営業の加盟チェーンの店数</b>（選んだアプリに加盟しているチェーンだけ）。<b>赤</b>15店以上、<b>オレンジ</b>11〜14店、<b>黄</b>4〜10店、<b>緑</b>3店、<b>青</b>1〜2店、<b>灰</b>0店。指で広げて拡大すると、細かい駅の名前も出てくる。</li>
       <li>気になる<b>駅の●をタップ</b>すると、時間ごとの店数と、どのチェーンが何店あるかが出る。</li>
       <li>駅名がわかっているときは、<b>上の検索欄</b>に入れる（例：堀切菖蒲園）。</li>
       <li>自分の区の駅を強い順に見たいときは、地図の下の<b>「狙い目の駅」で区を選ぶ</b>。</li>
+      <li>数えるチェーンが自分のアプリと違うときは、いちばん下の<b>「数えるチェーン」のチェック</b>で直せる。</li>
     </ol>
   </details>
 </div>
@@ -124,6 +132,12 @@ ul.tips{margin:0;padding-left:1.2em;font-size:14px}ul.tips li{margin:3px 0}
     <button class="btn" id="more">もっと見る</button>
   </div>
   <div class="card">
+    <h2 id="picks-h">数えるチェーン</h2>
+    <p class="note" style="margin:0 0 10px">チェックの入ったチェーンだけを店数に数えます。アプリで見て「このチェーンは入っていない／入っている」と分かったら、ここで直してください（この端末に保存されます）。○はネットで加盟を確認、×は加盟していないと確認、？はまだ確認できていないチェーンです。</p>
+    <div class="picks" id="picks"></div>
+    <button class="btn" id="picks-reset" style="margin-top:10px">初期設定に戻す</button>
+  </div>
+  <div class="card">
     <h2>配達員向けメモ</h2>
     <ul class="tips">
       <li><b>22〜24時</b>：まだ選択肢が多い時間。ファミレス・牛丼・ハンバーガー・ラーメン・中華チェーンがある駅前ならどこでも鳴りやすい。</li>
@@ -134,7 +148,7 @@ ul.tips{margin:0;padding-left:1.2em;font-size:14px}ul.tips li{margin:3px 0}
       <li>雨の日は全時間帯で注文が増えやすい一方、深夜の郊外は店が少ないので遠距離の依頼になりがち。</li>
     </ul>
   </div>
-  <p class="note">※店数は <a href="https://overturemaps.org/" style="color:inherit">Overture Maps</a> の店舗データ（2026年9月版）から、駅から半径500m以内にある深夜営業チェーン約35社の店を数えたものです。データに営業時間は入っていないので、チェーンごとのふだんの閉店時間で時間帯を分けています。同じチェーンでも店によって閉店時間は違い、ショッピングモールの中の店などは早く閉まります。データにない店や、閉店したのに残っている店もあります。個人店（居酒屋・中華・ラーメンなど）とコンビニは数えていないので、個人店の多い街は実際より少なく出ます。駅をタップすると、個人店も含めた飲食店の数も出ます。会社ごとの加盟店の数は公開されていないので、店数はどの会社でも同じで、会社を選ぶと受付時間と対応エリアだけが変わります（2026年10月時点のネット上の情報。Woltは2026年3月、menuは2026年9月に終了したという情報があるので入れていません）。お店の営業時間や、アプリごとの配達エリア・受付時間は日や店舗で変わるので、必ず各アプリで確認してください。<br>
+  <p class="note">※店数は <a href="https://overturemaps.org/" style="color:inherit">Overture Maps</a> の店舗データ（2026年9月版）から、駅から半径500m以内にある深夜営業チェーン約35社のうち、選んだアプリに加盟しているチェーンの店を数えたものです。加盟状況はチェーン単位で、同じチェーンでも加盟していない店舗もあります。データに営業時間は入っていないので、チェーンごとのふだんの閉店時間で時間帯を分けています。同じチェーンでも店によって閉店時間は違い、ショッピングモールの中の店などは早く閉まります。データにない店や、閉店したのに残っている店もあります。個人店（居酒屋・中華・ラーメンなど）とコンビニは数えていないので、個人店の多い街は実際より少なく出ます。駅をタップすると、個人店も含めた飲食店の数も出ます。各アプリの加盟店の一覧は公開されていないので、チェーンごとの加盟状況はネットの記事で確認できた分だけです（2026年10月時点のネット上の情報。Woltは2026年3月、menuは2026年9月に終了したという情報があるので入れていません）。お店の営業時間や、アプリごとの配達エリア・受付時間は日や店舗で変わるので、必ず各アプリで確認してください。<br>
   店舗：Overture Maps Foundation（CDLA Permissive 2.0 ほか、OpenStreetMap 由来の部分は © OpenStreetMap contributors, ODbL）。駅の位置：<a href="https://github.com/piuccio/open-data-jp-railway-stations" style="color:inherit">open-data-jp-railway-stations</a>（駅データ.jp ほか）。境界データ：国土数値情報（行政区域データ）国土交通省／スマートニュース メディア研究所 加工。背景地図：地理院タイル。</p>
 </main>
 <script src="lib/leaflet.js"></script>
@@ -305,6 +319,30 @@ const PLAT={
   uber:{name:"Uber Eats",hours:[2,2,2],note:"24時間受付。ただし深夜に注文できるのは開いている店だけ。"},
   demae:{name:"出前館",hours:[2,1,0],note:"受付は深夜2時頃まで（地域や店によっては0時台に終わる）。2時以降はほぼ受付なし。"}
 };
+// チェーンごとの各アプリへの加盟状況（ネットで確認できたものだけ）。1=加盟 0=加盟していない、書いていない=未確認
+// 数え方の初期設定：Uber Eats・出前館は「加盟していない」と分かったチェーンだけ外す（大手はほとんど加盟しているため）。
+// ロケットナウは加盟チェーンがまだ少ないので「加盟」と確認できたチェーンだけ数える。画面のチェックで変えられる。
+const CHAIN_ORDER=["すき家","松屋","松のや","吉野家","なか卯","富士そば","一蘭","山岡家","マクドナルド",
+  "ガスト","デニーズ","ジョナサン","ココス","バーミヤン","日高屋","天下一品","オリジン","壱角家","すた丼","丸源ラーメン",
+  "サイゼリヤ","餃子の王将","大阪王将","かつや","CoCo壱番屋","モスバーガー","バーガーキング","ドミノ・ピザ","ピザハット","ピザーラ",
+  "からやま","ロイヤルホスト","幸楽苑","ほっともっと","ステーキガスト"];
+const MEMBER={
+  uber:{"マクドナルド":1,"すき家":1,"松屋":1,"吉野家":1,"サイゼリヤ":0,"一蘭":0},
+  demae:{"マクドナルド":1,"日高屋":1,"サイゼリヤ":0,"一蘭":0},
+  rocket:{"吉野家":1,"かつや":1,"ドミノ・ピザ":1,"CoCo壱番屋":1,"マクドナルド":0,"ガスト":0,"ほっともっと":0,"サイゼリヤ":0,"一蘭":0}
+};
+const NOT_ANY=["サイゼリヤ","一蘭"]; // どのアプリにも加盟していない
+function defaultOn(p,n){
+  if(p==="all")return !NOT_ANY.includes(n);
+  const m=MEMBER[p][n];
+  return p==="rocket"?m===1:m!==0;
+}
+let picks={}; // 画面で変えた分 { アプリ: { チェーン名: true/false } }
+try{picks=JSON.parse(localStorage.getItem("nd-picks")||"{}")||{}}catch(e){}
+const isOn=n=>{const o=picks[plat];return o&&n in o?o[n]:defaultOn(plat,n)};
+// チェーンごとの数 B=[[名前,店数,分類]] から時間帯ごとの店数を出す（分類 0=24h 1=深夜2時頃まで 2=23〜24時頃まで）
+const sumB=(B,i)=>B.reduce((a,b)=>a+(isOn(b[0])&&i<=2-b[2]?b[1]:0),0);
+function recount(){ST.forEach(s=>{s.C=[0,1,2].map(i=>sumB(s.B,i))})}
 let t=0,plat="all";
 try{const s=+localStorage.getItem("nd-t");if(s>=0&&s<=2)t=s;const p=localStorage.getItem("nd-plat");if(PLAT[p])plat=p}catch(e){}
 const prefOf={};
@@ -344,9 +382,9 @@ const labelLayer=L.layerGroup().addTo(map);
 function styleFor(f){const ok=covered(f.properties.n);
   return {color:"#5a6375",weight:1,opacity:.6,fillColor:ok?COLORS[0]:"#000",fillOpacity:ok?0.04:0.35}}
 function wardPopup(n,p){
-  const w=WARD[n]||[0,0,0],top=ST.filter(s=>s.mu===n).sort((x,y)=>rk(y)-rk(x)||y.k-x.k).slice(0,10);
+  const WB=WARD[n]||[],w=[0,1,2].map(i=>sumB(WB,i)),top=ST.filter(s=>s.mu===n).sort((x,y)=>rk(y)-rk(x)||y.k-x.k).slice(0,10);
   return `<div class="pop"><h3>${esc(shortName(n))}</h3><div class="pf">${p} ・ 駅 ${ST.filter(s=>s.mu===n).length}</div>`+
-    `<div class="pf" style="margin-top:6px">区市内の深夜営業チェーン</div>`+
+    `<div class="pf" style="margin-top:6px">区市内の深夜営業チェーン（${PLAT[plat].name==="全部"?"どれかのアプリに加盟":PLAT[plat].name+"に加盟"}）</div>`+
     TIMES.map((tm,i)=>`<div class="row${i===t?' cur':''}"><span>${tm}</span><span>${off(i)?"受付なし":w[i]+"店"}</span></div>`).join("")+wardPlat(n)+
     (AREA_NOTE[n]?`<p>${esc(AREA_NOTE[n])}</p>`:"")+
     (top.length?`<div class="pf" style="margin-top:8px">${TIMES[t]}の上位駅</div><div class="top">`+
@@ -354,10 +392,13 @@ function wardPopup(n,p){
       `<button class="btn more" data-ward="${esc(n)}">この区市の駅をすべて見る</button>`:"")+`</div>`;
 }
 function stationPopup(s){
-  const by=[0,1,2].map(c=>s.B.filter(b=>b[2]===c).map(b=>esc(b[0])+(b[1]>1?b[1]:"")).join("・")).map((x,c)=>x&&`<div class="br"><b>${CLS_NAME[c]}</b> ${x}</div>`).join("");
+  const nm=b=>esc(b[0])+(b[1]>1?b[1]:"");
+  const by=[0,1,2].map(c=>s.B.filter(b=>b[2]===c&&isOn(b[0])).map(nm).join("・")).map((x,c)=>x&&`<div class="br"><b>${CLS_NAME[c]}</b> ${x}</div>`).join("");
+  const skip=s.B.filter(b=>!isOn(b[0])).map(nm).join("・");
   return `<div class="pop"><h3>${esc(s.n)}駅</h3><div class="pf">${s.pref} ${esc(shortName(s.mu))} ・ ${s.k}路線</div>`+
-    `<div class="pf" style="margin-top:6px">駅から500m以内の深夜営業チェーン</div>`+rows(s.C)+
-    (by?`<div class="brs">${by}</div>`:`<p>深夜営業チェーンは見つかりませんでした。</p>`)+
+    `<div class="pf" style="margin-top:6px">駅から500m以内の深夜営業チェーン（${PLAT[plat].name==="全部"?"どれかのアプリに加盟":PLAT[plat].name+"に加盟"}）</div>`+rows(s.C)+
+    (by?`<div class="brs">${by}</div>`:`<p>数えている加盟チェーンは見つかりませんでした。</p>`)+
+    (skip?`<p class="pf">数えていない：${skip}</p>`:"")+
     `<p class="pf">飲食店（個人店も含めた全部）：約${s.food}店</p>`+
     (s.note?`<p>メモ：${esc(s.note)}</p>`:"")+wardPlat(s.mu)+`</div>`;
 }
@@ -369,8 +410,8 @@ Promise.all([fetch("kanto.geojson").then(r=>r.json()),fetch("stations.json").the
     layer.on("click",e=>L.popup().setLatLng(e.latlng).setContent(wardPopup(f.properties.n,f.properties.p)).openOn(map));
   }}).addTo(map);
   ST=stations.map(([n,lat,lon,k,mu],i)=>{
-    const [c22,c0,c2,food,B]=stores[i];
-    return {i,n,lat,lon,k,mu,pref:prefOf[mu]||"",C:[c22,c0,c2],food,B,note:(NOTE[mu]&&NOTE[mu][n])||""};
+    const [,,,food,B]=stores[i];
+    return {i,n,lat,lon,k,mu,pref:prefOf[mu]||"",C:[0,0,0],food,B,note:(NOTE[mu]&&NOTE[mu][n])||""};
   });
   ST.forEach(s=>{
     blobs.push(L.circle([s.lat,s.lon],{radius:1,stroke:false,interactive:false}).addTo(blobLayer));
@@ -444,7 +485,7 @@ function renderRank(){
   const lim=w?20:24;
   $("more").hidden=showAll||list.length<=lim;$("more").textContent=`もっと見る（全${list.length}駅）`;
   $("rank").innerHTML=(showAll?list:list.slice(0,lim)).map(s=>
-    `<button data-i="${s.i}">${lvlTag(lv(s),cnt(s))}<span><b>${esc(s.n)}${covered(s.mu)?"":' <span class="unk">対応未確認</span>'}</b><small>${w?"":esc(shortName(s.mu))+"・"}${s.B.length?esc(s.B.slice(0,4).map(b=>b[0]+(b[1]>1?b[1]:"")).join("・")):"深夜営業チェーンなし"}</small></span></button>`).join("")||`<p class="note">この区市には駅がありません。</p>`;
+    `<button data-i="${s.i}">${lvlTag(lv(s),cnt(s))}<span><b>${esc(s.n)}${covered(s.mu)?"":' <span class="unk">対応未確認</span>'}</b><small>${w?"":esc(shortName(s.mu))+"・"}${s.B.some(b=>isOn(b[0]))?esc(s.B.filter(b=>isOn(b[0])).slice(0,4).map(b=>b[0]+(b[1]>1?b[1]:"")).join("・")):"加盟チェーンなし"}</small></span></button>`).join("")||`<p class="note">この区市には駅がありません。</p>`;
 }
 $("ward").addEventListener("change",()=>{showAll=false;try{localStorage.setItem("nd-ward",$("ward").value)}catch(e){}
   const w=$("ward").value;renderRank();
@@ -455,6 +496,24 @@ $("rank").addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
   $("map").scrollIntoView({behavior:"smooth"});openStation(ST[+b.dataset.i],true);
 });
+
+// 数えるチェーンの選択
+const CLS_OF={};
+function renderPicks(){
+  if(!ST.length)return;
+  ST.forEach(s=>s.B.forEach(b=>CLS_OF[b[0]]=b[2]));
+  $("picks-h").textContent=`数えるチェーン（${PLAT[plat].name==="全部"?"全部のアプリ":PLAT[plat].name}）`;
+  const mark=n=>{if(plat==="all")return NOT_ANY.includes(n)?"×":"";const m=MEMBER[plat][n];return m===1?"○":m===0?"×":"？"};
+  $("picks").innerHTML=[0,1,2].map(c=>`<div class="grp"><b>${CLS_NAME[c]}</b><div class="chips">`+
+    CHAIN_ORDER.filter(n=>CLS_OF[n]===c).map(n=>`<label class="${isOn(n)?'on':''}"><input type="checkbox" data-n="${esc(n)}"${isOn(n)?" checked":""}>${esc(n)}${mark(n)?`<i>${mark(n)}</i>`:""}</label>`).join("")+`</div></div>`).join("");
+}
+function savePicks(){try{localStorage.setItem("nd-picks",JSON.stringify(picks))}catch(e){}}
+$("picks").addEventListener("change",e=>{
+  const n=e.target.dataset.n;if(!n)return;
+  (picks[plat]=picks[plat]||{})[n]=e.target.checked;savePicks();
+  map.closePopup();recount();restyle();renderRank();renderPicks();
+});
+$("picks-reset").addEventListener("click",()=>{delete picks[plat];savePicks();map.closePopup();recount();restyle();renderRank();renderPicks()});
 
 // 駅名検索
 function search(){
@@ -470,7 +529,7 @@ function setPlat(p){plat=p;
   try{localStorage.setItem("nd-plat",p)}catch(e){}
   document.querySelectorAll("#plats button").forEach(b=>b.classList.toggle("on",b.dataset.p===plat));
   $("platnote").textContent=PLAT[plat].note;$("platnote").hidden=!PLAT[plat].note;
-  map.closePopup();restyle();renderRank();
+  map.closePopup();recount();restyle();renderRank();renderPicks();
 }
 $("plats").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setPlat(b.dataset.p)});
 function setTime(n){t=n;

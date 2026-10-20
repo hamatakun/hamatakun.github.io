@@ -6,7 +6,8 @@
 
 出力は stations.json と同じ順番の配列で、各駅が
   [22〜24時の店数, 0〜2時の店数, 2時以降の店数, 飲食店の総数, [[チェーン名, 店数, 分類], ...]]
-最後の要素 "_wards" に区市町村ごとの [22〜24時, 0〜2時, 2時以降] の店数を入れる。
+最後の要素 "_wards" に区市町村ごとの [[チェーン名, 店数, 分類], ...] を入れる。
+どのチェーンを数えるか（アプリに加盟しているか）はページ側で選ぶので、ここではチェーンごとの数だけ出す。
 
 営業時間はデータに入っていないので、チェーンごとのふだんの閉店時間で3つに分けている。
   24h : 24時間営業の店が多い → 3つの時間帯すべてで数える
@@ -158,13 +159,14 @@ def inside(ring, lat, lng):
     return ins
 
 
-wards = defaultdict(lambda: [0, 0, 0])
+wards = defaultdict(lambda: defaultdict(int))
 for lat, lon, name, cls in stores:
     for x0, x1, y0, y1, rings, n in areas:
         if x0 <= lon <= x1 and y0 <= lat <= y1 and any(inside(r, lat, lon) for r in rings):
-            for i, on in enumerate(SLOTS[cls]):
-                wards[n][i] += on
+            wards[n][name] += 1
             break
+wards = {n: [[b, k, list(SLOTS).index(CLASS[b])] for b, k in sorted(v.items(), key=lambda x: -x[1])]
+         for n, v in wards.items()}
 
 print('[' + ',\n'.join(json.dumps(o, ensure_ascii=False, separators=(',', ':')) for o in out)
       + ',\n' + json.dumps({'_wards': wards}, ensure_ascii=False, separators=(',', ':')) + ']')
