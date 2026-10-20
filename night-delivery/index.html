@@ -10,6 +10,7 @@
 :root{--bg:#0e1117;--card:#161b24;--tx:#e8ebf2;--sub:#98a1b5;--line:#2a3140;--pri:#6b94ff;
   --l0:#4a5160;--l1:#3b5ba8;--l2:#2a9d8f;--l3:#e9c46a;--l4:#f4842c;--l5:#e63950}
 *{box-sizing:border-box}
+:root{color-scheme:dark}
 html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.6 system-ui,"Hiragino Sans","Meiryo",sans-serif}
 header{padding:12px 16px 8px;max-width:1100px;margin:auto}
 h1{margin:0;font-size:20px}
@@ -61,6 +62,12 @@ main{max-width:1100px;margin:0 auto;padding:12px 16px 40px}
 #more{margin-top:10px;width:100%}
 ul.tips{margin:0;padding-left:1.2em;font-size:14px}ul.tips li{margin:3px 0}
 .note{font-size:12px;color:var(--sub)}
+.howto{max-width:1100px;margin:0 auto 8px;padding:0 16px}
+.howto details{background:var(--card);border:1px solid var(--line);border-radius:10px}
+.howto summary{padding:10px 12px;font-weight:700;cursor:pointer}
+.howto ol{margin:0;padding:0 14px 12px 34px;display:grid;gap:6px;font-size:14px}
+.howto b{color:#fff}
+#msg{max-width:1100px;margin:0 auto;padding:0 16px 8px;color:var(--l3);font-size:13px}
 </style>
 </head>
 <body>
@@ -78,6 +85,19 @@ ul.tips{margin:0;padding-left:1.2em;font-size:14px}ul.tips li{margin:3px 0}
     <button class="btn" id="locate" title="現在地">📍</button>
   </div>
 </div>
+<div class="howto">
+  <details id="howto" open>
+    <summary>使い方（タップで閉じる）</summary>
+    <ol>
+      <li>上のボタンで<b>今の時間</b>を選ぶ（夜10時〜12時なら「22〜24時」）。</li>
+      <li>地図の<b>赤やオレンジの駅</b>が、お店が開いていて注文が出やすい駅。指で広げて拡大すると、細かい駅の名前も出てくる。</li>
+      <li>気になる<b>駅の●をタップ</b>すると、時間ごとのレベルとメモが出る。</li>
+      <li>駅名がわかっているときは、<b>上の検索欄</b>に入れる（例：堀切菖蒲園）。</li>
+      <li>自分の区の駅を強い順に見たいときは、地図の下の<b>「狙い目の駅」で区を選ぶ</b>。</li>
+    </ol>
+  </details>
+</div>
+<p id="msg" hidden></p>
 <div id="map"></div>
 <main>
   <div class="card">
@@ -690,7 +710,7 @@ $("rank").addEventListener("click",e=>{
 function search(){
   const q=$("q").value.trim().replace(/駅$/,"");if(!q)return;
   const s=ST.find(s=>s.n===q)||ST.filter(s=>s.n.includes(q)).sort((a,b)=>b.k-a.k)[0];
-  if(s){openStation(s,true);$("q").blur()}else alert(`「${q}」が見つかりませんでした`);
+  if(s){openStation(s,true);$("q").blur();say("")}else say(`「${q}」という駅は見つかりませんでした。駅名を確かめてもう一度入れてください。`);
 }
 $("q").addEventListener("change",search);
 $("q").addEventListener("keydown",e=>{if(e.key==="Enter")search()});
@@ -706,8 +726,13 @@ $("times").addEventListener("click",e=>{const b=e.target.closest("button");if(b)
 // 現在地
 let me;
 $("locate").addEventListener("click",()=>map.locate({setView:true,maxZoom:14}));
-map.on("locationfound",e=>{if(me)me.remove();me=L.circleMarker(e.latlng,{radius:8,color:"#fff",weight:3,fillColor:"#2f6bff",fillOpacity:1}).addTo(map)});
-map.on("locationerror",()=>alert("現在地を取得できませんでした。位置情報の許可を確認してください。"));
+map.on("locationfound",e=>{say("");if(me)me.remove();me=L.circleMarker(e.latlng,{radius:8,color:"#fff",weight:3,fillColor:"#2f6bff",fillOpacity:1}).addTo(map)});
+map.on("locationerror",()=>say("現在地を取得できませんでした。ブラウザの位置情報の許可を確認してください。"));
+function say(m){$("msg").textContent=m;$("msg").hidden=!m}
+
+// 使い方は一度閉じたら次からは閉じたまま
+try{if(localStorage.getItem("nd-howto")==="0")$("howto").open=false}catch(e){}
+$("howto").addEventListener("toggle",()=>{try{localStorage.setItem("nd-howto",$("howto").open?"1":"0")}catch(e){}});
 </script>
 </body>
 </html>
