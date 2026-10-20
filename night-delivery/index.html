@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="lib/leaflet.css">
 <style>
 :root{--bg:#0e1117;--card:#161b24;--tx:#e8ebf2;--sub:#98a1b5;--line:#2a3140;--pri:#6b94ff;
-  --l0:#3a4150;--l1:#2f4f8f;--l2:#2a9d8f;--l3:#e9c46a;--l4:#f4842c;--l5:#e63950}
+  --l0:#4a5160;--l1:#3b5ba8;--l2:#2a9d8f;--l3:#e9c46a;--l4:#f4842c;--l5:#e63950}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.6 system-ui,"Hiragino Sans","Meiryo",sans-serif}
 header{padding:12px 16px 8px;max-width:1100px;margin:auto}
@@ -20,83 +20,97 @@ header p{margin:2px 0 0;color:var(--sub);font-size:12px}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button.on{background:var(--pri);color:#fff}
 .btn{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--tx);font:inherit;cursor:pointer}
-#map{height:68vh;min-height:380px;max-width:1100px;margin:0 auto;background:#1a1f29}
-@media(min-width:900px){#map{height:74vh;border-radius:12px}}
-.leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.4)}
+.search{display:flex;gap:6px;flex:1;min-width:220px}
+.search input,select{flex:1;min-width:0;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--tx);font:inherit}
+#map{height:70vh;min-height:400px;max-width:1100px;margin:0 auto;background:#1a1f29}
+@media(min-width:900px){#map{height:76vh;border-radius:12px}}
+.leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.8) contrast(.9) saturate(.35)}
 .leaflet-container{font:inherit}
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--card);color:var(--tx)}
-.leaflet-popup-content{margin:12px 14px;min-width:210px}
+.leaflet-popup-content{margin:12px 14px;min-width:220px}
 .leaflet-container a.leaflet-popup-close-button{color:var(--sub)}
 .leaflet-control-attribution{background:rgba(14,17,23,.75)!important;color:var(--sub)!important;font-size:10px}
 .leaflet-control-attribution a{color:var(--sub)!important}
-.pop h3{margin:0 0 2px;font-size:16px}
+.pop h3{margin:0 0 2px;font-size:17px}
 .pop .pf{color:var(--sub);font-size:12px}
 .pop .row{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:4px}
 .pop .row span:first-child{width:62px;flex:none;white-space:nowrap;color:var(--sub)}
 .pop .row.cur span:first-child{color:var(--tx);font-weight:700}
 .pop p{margin:8px 0 0;font-size:13px}
-.pop .spots{margin-top:6px;font-size:12px;color:var(--sub)}
+.pop .top{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px}
+.pop .top button{border:0;border-radius:6px;padding:2px 7px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.pop .more{margin-top:8px;width:100%;padding:6px;font-size:13px}
 .dots{display:inline-flex;gap:3px}
 .dots i{width:14px;height:8px;border-radius:2px;background:var(--line)}
-.lvl{display:inline-block;padding:1px 7px;border-radius:6px;font-size:12px;font-weight:700;color:#111}
-.tag{font-size:11px!important;font-weight:700;padding:1px 5px!important;background:rgba(14,17,23,.85)!important;color:#fff!important;border:0!important;box-shadow:none!important;border-radius:5px!important}
-.tag::before{display:none}
-.hide-tags .tag{display:none}
+.lvl{display:inline-block;padding:1px 7px;border-radius:6px;font-size:12px;font-weight:700;white-space:nowrap}
+.lab span{position:absolute;left:0;top:0;transform:translateY(-50%);white-space:nowrap;font-size:11px;font-weight:700;line-height:1;padding:3px 5px;border-radius:5px;background:rgba(14,17,23,.82);color:#fff;pointer-events:none}
+.lab span.big{font-size:13px}
 main{max-width:1100px;margin:0 auto;padding:12px 16px 40px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
 .card h2{margin:0 0 8px;font-size:16px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
 .legend span{display:inline-flex;align-items:center;gap:6px}
-.legend i{width:18px;height:12px;border-radius:3px;display:inline-block}
-.rank{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.legend i{width:14px;height:14px;border-radius:50%;display:inline-block}
+.rank-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.rank-head h2{margin:0;flex:1;min-width:180px}
+.rank-head select{flex:none;width:auto;max-width:100%}
+.rank{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
 .rank button{display:flex;gap:8px;align-items:flex-start;text-align:left;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit;cursor:pointer}
 .rank b{display:block;font-size:14px}.rank small{display:block;color:var(--sub);font-size:12px;line-height:1.45}
 .rank .lvl{flex:none;margin-top:2px}
+#more{margin-top:10px;width:100%}
 ul.tips{margin:0;padding-left:1.2em;font-size:14px}ul.tips li{margin:3px 0}
 .note{font-size:12px;color:var(--sub)}
-#more{margin-top:10px;width:100%}
 </style>
 </head>
 <body>
 <header>
   <h1>🌙 深夜デリバリー分布図（関東）</h1>
-  <p>夜22時以降、どこに行けば「お店が開いていて注文が出やすいか」を市区町村と駅・繁華街ごとに色分け。赤いほど稼ぎやすい。</p>
+  <p>夜22時以降に「お店が開いていて注文が出やすい駅」を、関東の約1,900駅ごとに色分け。赤いほど稼ぎやすい。</p>
 </header>
 <div class="bar">
   <div class="seg" id="times">
     <button data-t="0">22〜24時</button><button data-t="1">0〜2時</button><button data-t="2">2時以降</button>
   </div>
-  <button class="btn" id="locate">📍 現在地</button>
+  <div class="search">
+    <input id="q" list="names" placeholder="駅名で探す（例: 堀切菖蒲園）" autocomplete="off">
+    <datalist id="names"></datalist>
+    <button class="btn" id="locate" title="現在地">📍</button>
+  </div>
 </div>
 <div id="map"></div>
 <main>
   <div class="card">
     <div class="legend" id="legend"></div>
-    <p class="note" style="margin:8px 0 0">地図の区・市をタップすると、時間帯ごとのレベルと狙い目の駅・町が出ます。丸印は繁華街・駅周辺のスポット（拡大すると名前が出ます）。</p>
+    <p class="note" style="margin:8px 0 0">●が駅、まわりのぼんやりした色がその駅の勢力圏。色が重なって赤っぽく広がっている所ほど、深夜に動きやすい方面です。駅をタップすると時間帯ごとのレベル、区・市の地面をタップするとその区市の上位駅が出ます。</p>
   </div>
   <div class="card">
-    <h2 id="rank-h">狙い目スポット</h2>
+    <div class="rank-head">
+      <h2 id="rank-h">狙い目の駅</h2>
+      <select id="ward"></select>
+    </div>
     <div class="rank" id="rank"></div>
     <button class="btn" id="more">もっと見る</button>
   </div>
   <div class="card">
     <h2>配達員向けメモ</h2>
     <ul class="tips">
-      <li><b>22〜24時</b>：まだ選択肢が多い時間。ファミレス・牛丼・ハンバーガー・ラーメン・中華チェーンが開いている駅前ならどこでも鳴りやすい。</li>
+      <li><b>22〜24時</b>：まだ選択肢が多い時間。ファミレス・牛丼・ハンバーガー・ラーメン・中華チェーンがある駅前ならどこでも鳴りやすい。</li>
       <li><b>0時を過ぎると</b>：開いている店が24時間チェーンと繁華街の店にほぼ絞られる。ピックは繁華街、ドロップは周辺の住宅街という流れになりやすい。</li>
-      <li><b>2時以降</b>：都心の繁華街（新宿・渋谷・池袋・六本木・五反田など）以外はかなり薄い。郊外は24時間の牛丼・ハンバーガー店がある駅周辺に寄せる。</li>
-      <li>待機は「繁華街と住宅街の境目」がおすすめ。どちらの向きの依頼も取りやすく、帰り道も短くなる。</li>
+      <li><b>2時以降</b>：赤い駅（新宿・渋谷・池袋・六本木・五反田・錦糸町など）以外はかなり薄い。郊外は24時間の牛丼・ハンバーガー店がある大きな駅に寄せる。</li>
+      <li>待機は「赤い駅と住宅街の間」がおすすめ。どちら向きの依頼も取りやすく、帰り道も短くなる。</li>
       <li>終電前後（23:30〜1:00）は帰宅した人の「夜食」注文が増えやすい。金・土・祝前日は全体的に1段階上がるイメージ。</li>
       <li>雨の日は全時間帯で注文が増えやすい一方、深夜の郊外は店が少ないので遠距離の依頼になりがち。</li>
     </ul>
   </div>
-  <p class="note">※この地図は、繁華街の分布・24時間営業チェーンの多い場所・人口の多い住宅地などをもとにした<b>推定</b>です。実際の店舗数や注文数のデータではありません。お店の営業時間や、アプリごとの配達エリア・受付時間は日や店舗で変わるので、必ず各アプリで確認してください。<br>
-  境界データ：国土数値情報（行政区域データ）国土交通省／スマートニュース メディア研究所 加工。背景地図：地理院タイル。</p>
+  <p class="note">※この地図は、繁華街の分布・24時間営業チェーンの多い駅・乗り入れ路線の数・人口の多い住宅地などをもとにした<b>推定</b>です。実際の店舗数や注文数のデータではありません。お店の営業時間や、アプリごとの配達エリア・受付時間は日や店舗で変わるので、必ず各アプリで確認してください。<br>
+  駅の位置：<a href="https://github.com/piuccio/open-data-jp-railway-stations" style="color:inherit">open-data-jp-railway-stations</a>（駅データ.jp ほか）。境界データ：国土数値情報（行政区域データ）国土交通省／スマートニュース メディア研究所 加工。背景地図：地理院タイル。</p>
 </main>
 <script src="lib/leaflet.js"></script>
 <script>
-// 市区町村ごとのレベル [22〜24時, 0〜2時, 2時以降, メモ]
+// 区市町村ごとのレベル [22〜24時, 0〜2時, 2時以降, メモ]
 // 5:激アツ 4:多い 3:そこそこ 2:少なめ 1:まばら 0:ほぼ無し（未記載は0）
+// 下の STA に書いていない駅は、ここの値と乗り入れ路線数から自動でレベルを決める。
 const AREA={
 // 東京23区
 "千代田区":[3,2,1,"秋葉原・神田・有楽町の駅前は遅くまで開くが、夜に住んでいる人は少なめ。"],
@@ -120,12 +134,12 @@ const AREA={
 "板橋区":[3,2,2,"大山・板橋・成増の駅前。住宅は多いので注文はそこそこ。"],
 "練馬区":[3,2,1,"練馬駅・石神井公園・大泉学園の駅前に集中。"],
 "足立区":[3,3,2,"北千住は深夜も強い。竹ノ塚・綾瀬も駅前は動く。"],
-"葛飾区":[3,2,2,"新小岩は深夜の飲食が多い。金町・亀有・青砥は駅前のみ。"],
+"葛飾区":[3,2,2,"新小岩・堀切菖蒲園・立石は夜も店が多い。金町・亀有・青砥も駅前は動く。"],
 "江戸川区":[3,3,2,"小岩・葛西・西葛西。住宅が多く夜食の注文が出やすい。"],
 // 多摩
 "八王子市":[3,2,1,"八王子駅周辺に集中。南大沢・八王子みなみ野は早めに静かになる。"],
 "立川市":[3,3,2,"多摩で一番深夜に強い。立川駅の北口・南口とも遅くまで開く。"],
-"武蔵野市":[4,3,2,"吉祥寺は深夜まで店が多い。三鷹・中野寄りへのドロップも。"],
+"武蔵野市":[4,3,2,"吉祥寺は深夜まで店が多い。"],
 "三鷹市":[3,2,1,"三鷹駅周辺が中心。"],
 "府中市":[3,2,1,"府中駅・分倍河原の駅前。"],
 "昭島市":[2,1,1,""],
@@ -149,6 +163,7 @@ const AREA={
 "あきる野市":[1,0,0,""],
 "西東京市":[2,1,1,"田無・ひばりヶ丘の駅前。"],
 "西多摩郡瑞穂町":[1,0,0,""],
+"青梅市":[1,1,0,""],
 // 神奈川
 "横浜市鶴見区":[3,2,2,"鶴見駅周辺は遅くまで開く店が多い。"],
 "横浜市神奈川区":[3,3,2,"横浜駅の東口側・東神奈川。住宅も多い。"],
@@ -324,231 +339,373 @@ const AREA={
 "邑楽郡大泉町":[1,0,0,""]
 };
 
-// 駅・繁華街スポット [名前, 緯度, 経度, 22〜24時, 0〜2時, 2時以降, メモ]
-const SPOT=[
-["歌舞伎町・新宿東口",35.6938,139.7034,5,5,5,"朝まで店も注文も途切れない関東最強エリア"],
-["新宿三丁目",35.6907,139.7067,5,5,4,"飲食店が多く深夜も鳴りやすい"],
-["新宿西口・西新宿",35.6905,139.6958,4,4,3,"ホテル・オフィスへの配達も"],
-["新大久保",35.7012,139.7000,5,4,4,"韓国料理など深夜営業の店が多い"],
-["高田馬場",35.7128,139.7038,5,4,3,"学生街。0時台も注文が多い"],
-["池袋西口",35.7310,139.7085,5,5,4,"24時間の店が多い"],
-["池袋東口",35.7300,139.7140,5,5,4,"サンシャイン通り周辺"],
-["大塚",35.7317,139.7286,4,3,3,"遅くまで開く飲食店あり"],
-["渋谷センター街・道玄坂",35.6600,139.6982,5,5,5,"朝まで動く"],
-["恵比寿",35.6467,139.7101,5,4,3,"飲食店が多く遅くまで開く"],
-["笹塚・幡ヶ谷",35.6738,139.6672,4,3,2,"一人暮らしが多くドロップ先として強い"],
-["六本木",35.6628,139.7314,5,5,5,"朝まで営業の店が多い"],
-["麻布十番",35.6544,139.7369,4,3,2,"周辺のマンション需要が大きい"],
-["赤坂",35.6727,139.7366,5,4,3,"飲食店が密集"],
-["新橋",35.6663,139.7583,5,4,3,"終電前後が山"],
-["田町・芝浦",35.6457,139.7476,4,3,2,"芝浦のタワマン需要"],
-["品川港南",35.6285,139.7387,4,3,2,"マンション・ホテル"],
-["五反田",35.6262,139.7236,5,5,4,"朝まで開く店が多い"],
-["大井町",35.6074,139.7347,4,3,2,"駅前に深夜の店が多い"],
-["武蔵小山",35.6206,139.7043,4,3,2,"商店街周辺"],
-["中目黒",35.6442,139.6990,4,4,3,"飲食店が多く一人暮らしも多い"],
-["学芸大学",35.6288,139.6853,4,3,2,""],
-["自由が丘",35.6074,139.6687,4,3,1,"0時以降は落ち着く"],
-["三軒茶屋",35.6436,139.6714,5,4,3,"世田谷の中心。深夜も強い"],
-["下北沢",35.6614,139.6680,5,4,3,"若者が多く深夜も注文が出る"],
-["二子玉川",35.6116,139.6268,4,2,1,"ファミリー層。0時以降は少なめ"],
-["経堂・千歳船橋",35.6512,139.6366,3,3,2,""],
-["千歳烏山",35.6676,139.6006,3,3,2,""],
-["中野",35.7056,139.6657,5,4,3,"北口の飲食街は深夜も強い"],
-["高円寺",35.7054,139.6497,5,4,3,"深夜まで開く店が多い"],
-["阿佐ヶ谷",35.7046,139.6359,4,3,2,""],
-["荻窪",35.7044,139.6200,4,3,2,""],
-["吉祥寺",35.7030,139.5797,5,4,3,"多摩方面で一番の繁華街"],
-["三鷹",35.7027,139.5607,3,3,2,""],
-["赤羽",35.7778,139.7210,4,4,3,"飲み屋街で深夜も強い"],
-["王子",35.7528,139.7381,3,3,2,""],
-["十条",35.7637,139.7223,3,2,2,""],
-["大山",35.7484,139.7024,4,3,2,"商店街周辺。住宅が多い"],
-["成増",35.7774,139.6315,3,2,2,""],
-["練馬",35.7378,139.6542,4,3,2,""],
-["石神井公園",35.7436,139.6066,3,2,1,""],
-["上野・御徒町",35.7105,139.7760,5,4,3,"深夜も開く店が多い"],
-["浅草",35.7114,139.7966,4,3,2,""],
-["秋葉原",35.6984,139.7731,4,3,2,""],
-["神田",35.6918,139.7709,4,3,2,""],
-["有楽町・銀座",35.6717,139.7650,4,3,1,"0時以降は一気に落ち着く"],
-["月島・勝どき",35.6588,139.7768,4,3,2,"タワマン需要"],
-["人形町",35.6862,139.7826,3,2,1,""],
-["錦糸町",35.6969,139.8140,5,5,4,"東東京の深夜の中心"],
-["押上",35.7105,139.8132,3,2,2,""],
-["亀戸",35.6974,139.8265,4,3,3,""],
-["門前仲町",35.6717,139.7963,4,3,2,""],
-["豊洲・東雲",35.6548,139.7963,4,3,2,"タワマンからの注文が多い"],
-["東陽町",35.6697,139.8173,3,3,2,""],
-["北千住",35.7493,139.8048,5,4,3,"東京北東部で一番深夜に強い"],
-["竹ノ塚",35.7945,139.7905,3,3,2,""],
-["綾瀬",35.7621,139.8250,3,3,2,""],
-["新小岩",35.7167,139.8577,4,4,3,"深夜の飲食が多い"],
-["金町・亀有",35.7695,139.8705,3,2,2,""],
-["小岩",35.7329,139.8822,4,3,3,""],
-["西葛西・葛西",35.6646,139.8593,4,3,2,"住宅が多い"],
-["日暮里",35.7281,139.7710,3,3,2,""],
-["蒲田",35.5625,139.7160,5,4,3,"深夜も開いている店がとても多い"],
-["大森",35.5883,139.7279,4,3,2,""],
-["立川",35.6980,139.4136,5,4,3,"多摩の深夜の中心"],
-["八王子",35.6556,139.3389,4,3,2,""],
-["町田",35.5420,139.4455,5,4,3,"東京南西部〜神奈川の深夜の中心"],
-["府中",35.6721,139.4800,3,2,1,""],
-["調布",35.6518,139.5442,4,3,2,""],
-["国分寺",35.7003,139.4805,3,2,2,""],
-["横浜駅西口",35.4660,139.6200,5,5,4,"神奈川で一番深夜に強い"],
-["みなとみらい",35.4573,139.6320,3,2,1,"マンション・ホテルへの配達"],
-["関内・伊勢佐木町",35.4440,139.6363,5,4,3,""],
-["野毛・桜木町",35.4510,139.6310,4,4,3,"飲み屋街"],
-["新横浜",35.5075,139.6176,4,3,2,""],
-["日吉・綱島",35.5537,139.6467,4,3,2,"学生が多い"],
-["鶴見",35.5077,139.6763,3,3,2,""],
-["上大岡",35.4091,139.5965,3,2,1,""],
-["戸塚",35.4011,139.5341,3,2,2,""],
-["たまプラーザ",35.5774,139.5585,3,2,1,""],
-["川崎駅東口",35.5311,139.6970,5,4,4,"深夜も強い"],
-["武蔵小杉",35.5763,139.6595,4,3,2,"タワマン需要"],
-["溝の口",35.5998,139.6107,4,3,2,""],
-["登戸",35.6208,139.5701,3,3,2,""],
-["新百合ヶ丘",35.6034,139.5079,3,2,1,""],
-["相模大野",35.5323,139.4380,4,3,2,""],
-["橋本",35.5949,139.3449,3,2,1,""],
-["本厚木",35.4398,139.3640,4,3,2,"県央の深夜の中心"],
-["大和",35.4697,139.4612,3,2,2,""],
-["海老名",35.4520,139.3907,3,2,1,""],
-["藤沢",35.3388,139.4874,4,3,2,"湘南エリアの中心"],
-["横須賀中央",35.2783,139.6703,4,3,2,""],
-["平塚",35.3280,139.3500,3,2,1,""],
-["小田原",35.2564,139.1553,3,2,1,""],
-["大宮駅東口",35.9055,139.6270,5,4,3,"埼玉で一番深夜に強い"],
-["浦和",35.8584,139.6573,4,3,2,""],
-["武蔵浦和",35.8455,139.6475,3,2,1,"マンション需要"],
-["川口",35.8018,139.7173,4,3,2,"人口が多い"],
-["西川口",35.8156,139.7046,4,4,3,"深夜営業の飲食店が多い"],
-["蕨",35.8262,139.6907,3,3,2,""],
-["川越",35.9070,139.4826,4,3,2,""],
-["所沢",35.7872,139.4731,4,3,2,""],
-["南越谷・新越谷",35.8757,139.7907,4,3,2,""],
-["草加",35.8286,139.8035,3,2,1,""],
-["朝霞台・北朝霞",35.8148,139.5875,3,2,1,""],
-["春日部",35.9802,139.7525,3,2,1,""],
-["熊谷",36.1393,139.3897,3,2,1,""],
-["千葉駅・栄町",35.6131,140.1134,5,4,3,"千葉県で一番深夜に強い"],
-["海浜幕張",35.6485,140.0418,3,2,1,""],
-["船橋",35.7017,139.9851,5,4,3,""],
-["西船橋",35.7076,139.9590,4,3,2,""],
-["津田沼",35.6912,140.0205,4,3,2,""],
-["本八幡",35.7213,139.9271,4,3,2,""],
-["行徳・妙典",35.6826,139.9145,3,3,2,"住宅が多い"],
-["松戸",35.7843,139.9006,4,4,3,""],
-["柏",35.8622,139.9711,4,4,3,"千葉北西部の深夜の中心"],
-["浦安・新浦安",35.6600,139.9030,4,3,2,""],
-["流山おおたかの森",35.8720,139.9250,3,2,1,""],
-["水戸",36.3709,140.4764,3,2,1,""],
-["つくば",36.0827,140.1115,3,2,1,""],
-["土浦",36.0782,140.2058,3,2,1,""],
-["宇都宮",36.5585,139.8900,4,3,2,"北関東で一番深夜に強い"],
-["小山",36.3130,139.8064,3,2,1,""],
-["高崎",36.3228,139.0127,4,3,2,""],
-["前橋",36.3833,139.0733,3,2,1,""],
-["太田",36.2952,139.3770,3,2,1,""],
-["伊勢崎",36.3222,139.1940,3,2,1,""]
-];
+// 駅ごとのレベル。「駅名」+「22〜24時/0〜2時/2時以降の3桁」、必要なら「:メモ」。空白区切り。
+const STA={
+"千代田区":"東京321:八重洲側は23時頃まで。0時以降は少ない 秋葉原432:電気街〜昭和通り口に深夜の店 神田432:ガード下の飲み屋・ラーメン 有楽町431:ガード下は遅くまで。0時過ぎは急に静か 四ツ谷321 御茶ノ水321 新御茶ノ水321 市ケ谷321 末広町321 溜池山王321 永田町210 淡路町211 小川町211 大手町210 霞ケ関100 国会議事堂前100 日比谷321 九段下211 竹橋100 二重橋前100 麹町210 桜田門000 半蔵門210 神保町321 岩本町321",
+"中央区":"新日本橋211 三越前210 馬喰町321 東日本橋321 馬喰横山321 八丁堀321 日本橋321 京橋211 宝町211 銀座431:23時台までは強い。0時を過ぎると一気に減る 小伝馬町321 人形町321 茅場町321 築地321 東銀座321 銀座一丁目321 新富町321 月島432:もんじゃ街とタワマン 水天宮前321 勝どき432:タワマンからの注文が多い 築地市場211 汐留321 内幸町321 浜町321",
+"港区":"新橋543:SL広場〜烏森口の飲み屋街。終電前後が山 品川432:港南口のマンション・ホテル 浜松町432 田町432:芝浦側のタワマン需要 泉岳寺321 高輪ゲートウェイ321 虎ノ門321 赤坂見附543 青山一丁目321 外苑前432 表参道432 神谷町321 六本木555:朝まで営業の店が多い 広尾432 赤坂543:飲食店が密集 乃木坂432 六本木一丁目432 麻布十番443:周辺のマンション需要が大きい 白金高輪432 白金台321 大門432 赤羽橋321 高輪台321 三田432 芝公園321 御成門321 竹芝211 日の出210 芝浦ふ頭321 お台場海浜公園210 台場210",
+"新宿区":"新宿555:歌舞伎町・東口は朝まで店も注文も途切れない関東最強エリア 西武新宿555:歌舞伎町の目の前 新大久保554:韓国料理など深夜営業の店が多い 高田馬場543:学生街。0時台も注文が多い 大久保443 信濃町211 市ヶ谷321 飯田橋432 下落合221 中井321 四谷三丁目432 新宿御苑前443:新宿二丁目の近く 新宿三丁目555:飲食店が多く深夜も鳴りやすい 西新宿322 早稲田432 神楽坂432 西早稲田322 東新宿443:歌舞伎町の裏手 都庁前321 新宿西口554:思い出横丁・西口の飲食街 若松河田221 牛込柳町321 牛込神楽坂321 国立競技場211 西新宿五丁目332 曙橋322 面影橋211 落合322",
+"文京区":"水道橋432 茗荷谷321 後楽園432 本郷三丁目321 千駄木321 根津321 湯島432:湯島〜上野の飲み屋街 護国寺211 江戸川橋321 本駒込211 東大前211 春日321 白山321 千石211",
+"台東区":"鶯谷433 上野543:アメ横〜仲町通りは深夜も開いている店が多い 御徒町543 上野広小路543 仲御徒町443 上野御徒町543 浅草橋432 浅草432:0時以降は少なめ 京成上野443 田原町321 稲荷町321 三ノ輪322 入谷321 新御徒町321 蔵前321",
+"墨田区":"両国432 錦糸町555:東東京の深夜の中心。南口は朝まで とうきょうスカイツリー321 押上321 曳舟322 東向島221 鐘ヶ淵211 小村井211 東あずま211 京成曳舟322 八広211 本所吾妻橋321 菊川321",
+"江東区":"亀戸443 越中島110 潮見211 新木場110 亀戸水神221 門前仲町443:飲み屋が多く遅くまで動く 木場321 東陽町432 南砂町322 豊洲432:タワマンからの注文が多い 辰巳221 清澄白河321 住吉332 森下322 西大島321 大島322 東大島221 船の科学館000 テレコムセンター100 青海100 国際展示場正門100 有明211 有明テニスの森211 市場前110 新豊洲211 東雲321 国際展示場211 東京テレポート210",
+"品川区":"大崎432 五反田555:朝まで開く店が多い 目黒432 西大井221 大井町443:駅前に深夜の店が多い 不動前321 武蔵小山432:商店街周辺 西小山321 下神明211 戸越公園321 中延321 荏原町221 旗の台321 大崎広小路443 戸越銀座321 戸越321 荏原中延321 北品川221 新馬場321 青物横丁332 鮫洲211 立会川321 大森海岸322 天王洲アイル321 大井競馬場前211 品川シーサイド221",
+"目黒区":"駒場東大前211 中目黒543:飲食店が多く一人暮らしも多い 祐天寺332 学芸大学432 都立大学332 自由が丘431:0時以降は落ち着く 洗足211 緑が丘211",
+"大田区":"大森443 蒲田554:深夜も開いている店がとても多い 田園調布210 多摩川211 大岡山321 北千束211 長原221 洗足池211 石川台211 雪が谷大塚321 御嶽山211 久が原211 千鳥町211 池上321 蓮沼322 沼部110 鵜の木211 下丸子221 武蔵新田321 矢口渡321 平和島332 大森町322 梅屋敷322 京急蒲田544 雑色322 六郷土手221 糀谷322 大鳥居221 穴守稲荷211 天空橋110 羽田空港国内線ターミナル110 羽田空港第１ビル110 羽田空港第２ビル110 羽田空港国際線ターミナル111 羽田空港国際線ビル111 西馬込221 馬込211 流通センター110 昭和島000 整備場000 新整備場000",
+"世田谷区":"代田橋322 明大前432 下高井戸332 桜上水321 上北沢221 芦花公園221 千歳烏山432 池ノ上321 下北沢543:若者が多く深夜も注文が出る 新代田321 東松原221 東北沢321 世田谷代田321 梅ヶ丘321 豪徳寺321 山下321 経堂432 千歳船橋332 祖師ヶ谷大蔵322 成城学園前321 喜多見211 奥沢211 池尻大橋432 三軒茶屋554:世田谷の中心。深夜も強い 駒沢大学432 桜新町321 用賀321 二子玉川421:ファミリー層。0時以降は少なめ 九品仏211 尾山台321 等々力221 上野毛211 西太子堂332 若林322 松陰神社前321 世田谷321 上町321 宮の坂211 松原221",
+"渋谷区":"恵比寿554:飲食店が多く遅くまで開く 渋谷555:センター街・道玄坂は朝まで動く 原宿432 明治神宮前432 代々木443 千駄ケ谷321 初台432 幡ヶ谷443:一人暮らしが多くドロップ先として強い 笹塚432 神泉443 南新宿332 参宮橋321 代々木八幡321 代々木公園322 代々木上原432 代官山432 北参道322",
+"中野区":"中野544:北口の飲食街は深夜も強い 東中野432 新井薬師前322 沼袋322 野方332 都立家政322 鷺ノ宮321 中野坂上432 新中野332 中野新橋322 中野富士見町321 新江古田221",
+"杉並区":"高円寺544:深夜まで開く店が多い 阿佐ケ谷443 荻窪443 西荻窪432 下井草221 井荻221 上井草221 八幡山321 永福町321 西永福221 浜田山321 高井戸321 富士見ヶ丘211 久我山321 東高円寺332 新高円寺332 南阿佐ケ谷322 方南町332",
+"豊島区":"目白321 池袋555:24時間の店が多く朝まで途切れない 大塚443 大塚駅前443 巣鴨432 駒込332 北池袋332 椎名町332 東長崎322 新大塚322 千川321 要町332 東池袋443:サンシャイン通りの裏手 東池袋四丁目332 雑司が谷221 鬼子母神前221 落合南長崎221 西巣鴨221 新庚申塚211 庚申塚211 巣鴨新田211 向原221 都電雑司ヶ谷211 学習院下211",
+"北区":"田端322 尾久221 赤羽543:飲み屋街で深夜も強い 十条432 北赤羽221 浮間舟渡221 東十条332 王子432 王子駅前332 上中里211 赤羽岩淵322 志茂322 王子神谷321 西ケ原211 梶原211 栄町211 飛鳥山211 滝野川一丁目211 西ヶ原四丁目211",
+"荒川区":"西日暮里432 日暮里432 三河島322 南千住332 新三河島221 町屋432 町屋駅前332 三ノ輪橋322 荒川一中前211 荒川区役所前211 荒川二丁目211 荒川七丁目211 町屋二丁目211 東尾久三丁目211 熊野前221 宮ノ前211 小台110 荒川遊園地前211 荒川車庫前211 赤土小学校前211",
+"板橋区":"板橋432 下板橋322 大山432:商店街周辺。住宅が多い 中板橋321 ときわ台321 上板橋332 東武練馬332 下赤塚321 成増432 地下鉄成増432 新板橋321 板橋区役所前332 板橋本町322 本蓮沼221 志村坂上321 志村三丁目221 蓮根221 西台321 高島平322 新高島平211 西高島平211",
+"練馬区":"地下鉄赤塚321 江古田432 桜台322 練馬443 中村橋321 富士見台321 練馬高野台321 石神井公園432 大泉学園432 小竹向原221 新桜台221 豊島園321 上石神井321 武蔵関321 平和台321 氷川台321 練馬春日町321 光が丘321",
+"足立区":"北千住554:東京北東部で一番深夜に強い 綾瀬433 堀切321:隣の堀切菖蒲園の方が店が多い 牛田322 京成関屋322 小菅211 五反野322 梅島322 西新井432 竹ノ塚443 大師前221 千住大橋321 北綾瀬321 青井221 六町321 足立小台211 扇大橋211 高野211 江北211 西新井大師西211 谷在家211 舎人公園210 舎人211 見沼代親水公園211",
+"葛飾区":"新小岩544:深夜の飲食が多い 亀有432 金町432 京成金町332 堀切菖蒲園542:駅前の飲み屋・中華・ラーメンが夜遅くまで。22時以降の狙い目 京成立石443:立石の飲み屋街。周辺は住宅が多い お花茶屋321 青砥432 京成高砂432 四ツ木322 柴又211 新柴又211",
+"江戸川区":"平井432 小岩544 葛西臨海公園110 京成小岩322 江戸川211 西葛西443:住宅が多い 葛西443 船堀432 一之江332 瑞江322 篠崎322",
+"八王子市":"八王子543:多摩西部の深夜の中心 京王八王子443 西八王子321 北野321 南大沢321 八王子みなみ野311 高尾211 めじろ台211 京王堀之内211",
+"立川市":"立川543:多摩の深夜の中心 立川北443 立川南443 西国立221 西立川211",
+"武蔵野市":"吉祥寺543:多摩方面で一番の繁華街 武蔵境432",
+"三鷹市":"三鷹432 三鷹台211 井の頭公園211",
+"府中市":"府中432 分倍河原321 府中本町211 東府中321 中河原221 北府中211 西府211",
+"昭島市":"拝島321 昭島321",
+"調布市":"調布432 仙川432 つつじヶ丘321 国領321 布田221 柴崎211 西調布211 飛田給211",
+"町田市":"町田543:東京南西部〜神奈川の深夜の中心 南町田グランベリーパーク321 成瀬321 鶴川321 玉川学園前211 多摩境211",
+"小金井市":"武蔵小金井432 東小金井321",
+"小平市":"花小金井321 小平221 一橋学園221 小川211 新小平210",
+"日野市":"日野321 豊田321 高幡不動321",
+"東村山市":"東村山321 久米川321 秋津321 新秋津321",
+"国分寺市":"国分寺432 西国分寺321",
+"国立市":"国立321 矢川211 谷保211",
+"福生市":"福生321 牛浜221 東福生211",
+"狛江市":"狛江321 和泉多摩川211",
+"東大和市":"東大和市211",
+"清瀬市":"清瀬321",
+"東久留米市":"東久留米321",
+"多摩市":"聖蹟桜ヶ丘321 多摩センター321 京王多摩センター321 小田急多摩センター321 京王永山211 小田急永山211",
+"稲城市":"稲城211 稲城長沼211 矢野口211",
+"羽村市":"羽村211 小作211",
+"西東京市":"田無321 ひばりヶ丘321 保谷321 東伏見211 西武柳沢211",
+"青梅市":"河辺211 青梅210 東青梅210",
+"あきる野市":"秋川210",
+"横浜市鶴見区":"鶴見433 京急鶴見433 生麦221 鶴見市場211 花月総持寺211 矢向221 国道211 鶴見小野211 弁天橋100 浅野000 新芝浦000 海芝浦000 安善000",
+"横浜市神奈川区":"東神奈川332 京急東神奈川322 大口321 新子安221 京急新子安211 白楽322 東白楽221 反町322 子安211 神奈川新町321 神奈川322 片倉町211 三ツ沢上町211 三ツ沢下町221",
+"横浜市西区":"横浜554:西口は神奈川で一番深夜に強い 戸部332 平沼橋322 西横浜221 新高島321 みなとみらい321:マンション・ホテルへの配達 高島町332",
+"横浜市中区":"桜木町443:野毛の飲み屋街 関内543 石川町332 山手211 日ノ出町443 馬車道332 日本大通り321 元町・中華街432 伊勢佐木長者町443",
+"横浜市南区":"黄金町332 南太田221 井土ヶ谷221 弘明寺321 阪東橋332 吉野町322 蒔田221",
+"横浜市保土ケ谷区":"保土ケ谷321 天王町321 星川321 和田町221 上星川211 西谷211",
+"横浜市磯子区":"根岸321 磯子321 新杉田321 洋光台211 屏風浦211 杉田321",
+"横浜市金沢区":"金沢文庫321 金沢八景321 京急富岡211 能見台211 六浦211 南部市場100 鳥浜100 並木北100 並木中央100 幸浦100 産業振興センター100 福浦100 市大医学部100 八景島100 海の公園柴口100 海の公園南口100 野島公園100",
+"横浜市港北区":"菊名432 新横浜432 小机211 日吉443:学生が多い 綱島432 大倉山321 妙蓮寺321 新羽211 北新横浜211 岸根公園211 高田211 日吉本町211",
+"横浜市戸塚区":"戸塚432 東戸塚321 舞岡110",
+"横浜市港南区":"上大岡432 港南台321 港南中央211 上永谷221 下永谷211",
+"横浜市旭区":"二俣川321 鶴ヶ峰321 希望ヶ丘211 南万騎が原110",
+"横浜市緑区":"長津田321 中山321 鴨居221 十日市場211",
+"横浜市瀬谷区":"三ツ境221 瀬谷211",
+"横浜市栄区":"本郷台211",
+"横浜市泉区":"立場211 いずみ中央211",
+"横浜市青葉区":"たまプラーザ321 あざみ野321 青葉台321 市が尾221 江田211 藤が丘211 田奈110 恩田100 こどもの国100",
+"横浜市都筑区":"センター北321 センター南321 仲町台211 中川211 北山田211 東山田110 川和町110 都筑ふれあいの丘110",
+"川崎市川崎区":"川崎544:東口は深夜も強い 京急川崎544 八丁畷322 川崎新町211 港町211 鈴木町211 川崎大師211 東門前211 大師橋211 小島新田211 小田栄110 浜川崎100 扇町000 大川000 武蔵白石000 昭和000",
+"川崎市幸区":"鹿島田321 新川崎321 尻手221",
+"川崎市中原区":"武蔵小杉443:タワマン需要が大きい 元住吉432 新丸子332 武蔵中原321 武蔵新城332 向河原221 平間221",
+"川崎市高津区":"溝の口543:深夜まで飲食が多い 武蔵溝ノ口543 二子新地221 高津321 梶が谷221 津田山211 久地211",
+"川崎市多摩区":"登戸432 向ヶ丘遊園332 稲田堤321 京王稲田堤321 生田321 中野島211 宿河原211 読売ランド前211",
+"川崎市宮前区":"鷺沼321 宮前平221 宮崎台211",
+"川崎市麻生区":"新百合ヶ丘432 百合ヶ丘211 柿生211 五月台110 栗平210 黒川100 はるひ野100 若葉台211",
+"相模原市緑区":"橋本432 相模湖100 藤野100",
+"相模原市中央区":"相模原321 淵野辺321 矢部211 南橋本211 上溝210 番田100",
+"相模原市南区":"相模大野432 小田急相模原322 古淵321 東林間211 相武台下100 下溝100 原当麻100",
+"横須賀市":"横須賀中央432 汐入322 横須賀211 追浜321 衣笠211 久里浜211 京急久里浜321 堀ノ内211 県立大学211 北久里浜211 浦賀210",
+"平塚市":"平塚432",
+"鎌倉市":"大船432 鎌倉311 北鎌倉100 腰越100 鎌倉高校前100 七里ヶ浜100 稲村ヶ崎100 極楽寺100 長谷100 由比ヶ浜100 和田塚100 富士見町100 湘南町屋100 湘南深沢100 西鎌倉100 片瀬山100",
+"藤沢市":"藤沢443:湘南エリアの深夜の中心 辻堂321 湘南台321 長後211 善行211 六会日大前211 藤沢本町211 鵠沼海岸211 片瀬江ノ島210",
+"小田原市":"小田原432 鴨宮211 国府津110",
+"茅ヶ崎市":"茅ケ崎321 北茅ケ崎210 香川110",
+"逗子市":"逗子211 新逗子211",
+"秦野市":"秦野211 渋沢210 東海大学前211 鶴巻温泉110",
+"厚木市":"本厚木543:県央の深夜の中心 愛甲石田211",
+"大和市":"大和432 中央林間321 南林間321 鶴間221 桜ヶ丘211 高座渋谷211 つきみ野110 相模大塚211",
+"伊勢原市":"伊勢原221",
+"海老名市":"海老名321 厚木211 さがみ野211 かしわ台210",
+"座間市":"相武台前211 座間210",
+"さいたま市大宮区":"大宮544:東口の南銀座は埼玉で一番深夜に強い さいたま新都心321 北大宮211 鉄道博物館110",
+"さいたま市北区":"宮原321 日進211 土呂211 東宮原210 大宮公園210 加茂宮100 今羽100 吉野原100",
+"さいたま市見沼区":"東大宮321 大和田211 七里210",
+"さいたま市中央区":"与野本町221 北与野211 南与野211",
+"さいたま市桜区":"西浦和211",
+"さいたま市西区":"指扇210 西大宮210",
+"さいたま市浦和区":"浦和432 北浦和332 与野221",
+"さいたま市南区":"武蔵浦和322:マンション需要 南浦和432 中浦和211",
+"さいたま市緑区":"東浦和221 浦和美園211",
+"さいたま市岩槻区":"岩槻211 東岩槻210",
+"川越市":"川越432 本川越432 川越市321 新河岸211 南古谷211 霞ヶ関211 的場110 南大塚210 西川越110 笠幡100",
+"熊谷市":"熊谷432 籠原210",
+"川口市":"川口543:人口が多く注文も多い 西川口544:深夜営業の飲食店が多い 東川口321 川口元郷321 南鳩ヶ谷221 鳩ヶ谷221 新井宿211 戸塚安行211",
+"所沢市":"所沢432 新所沢321 航空公園211 小手指321 東所沢221 西所沢211 狭山ヶ丘211 西武球場前100 遊園地西100 下山口100",
+"飯能市":"飯能210 東飯能210",
+"本庄市":"本庄211",
+"東松山市":"東松山211 高坂210",
+"春日部市":"春日部321 武里211 一ノ割211 北春日部210 南桜井210 豊春110 八木崎110 藤の牛島110",
+"狭山市":"狭山市221 新狭山210 入曽210 稲荷山公園110",
+"羽生市":"羽生210",
+"鴻巣市":"鴻巣211 北鴻巣110 吹上110",
+"深谷市":"深谷211",
+"上尾市":"上尾321 北上尾211",
+"草加市":"草加332 谷塚321 獨協大学前321 新田221",
+"越谷市":"南越谷432 新越谷432 越谷レイクタウン321 越谷321 北越谷221 蒲生221 大袋211 せんげん台321",
+"蕨市":"蕨432",
+"戸田市":"戸田公園321 北戸田321 戸田221",
+"入間市":"入間市211",
+"朝霞市":"北朝霞432 朝霞台432 朝霞321",
+"志木市":"柳瀬川211",
+"新座市":"志木332 新座211",
+"和光市":"和光市321",
+"桶川市":"桶川211",
+"久喜市":"久喜321",
+"北本市":"北本210",
+"八潮市":"八潮321",
+"富士見市":"ふじみ野321 鶴瀬211 みずほ台211",
+"三郷市":"新三郷221 三郷211 三郷中央211",
+"蓮田市":"蓮田210",
+"坂戸市":"坂戸211 北坂戸210",
+"幸手市":"幸手210",
+"鶴ヶ島市":"鶴ヶ島211 若葉210",
+"吉川市":"吉川211 吉川美南210",
+"ふじみ野市":"上福岡321",
+"白岡市":"白岡210",
+"南埼玉郡宮代町":"東武動物公園210",
+"千葉市中央区":"千葉543:千葉県で一番深夜に強い 京成千葉543 栄町443:深夜の飲み屋街 千葉中央432 葭川公園432 本千葉321 東千葉211 蘇我321 千葉みなと221 西登戸211 新千葉322 県庁前211 市役所前211 千葉公園211 千葉寺211 浜野210 大森台110 学園前110",
+"千葉市花見川区":"幕張本郷321 京成幕張本郷321 幕張211 京成幕張211 新検見川321 検見川211",
+"千葉市稲毛区":"稲毛432 西千葉321 京成稲毛221 みどり台221 作草部110 天台110 穴川110 スポーツセンター110 動物公園110",
+"千葉市若葉区":"都賀321 千城台210",
+"千葉市緑区":"鎌取211 誉田210 土気210 おゆみ野210",
+"千葉市美浜区":"海浜幕張321 検見川浜221 稲毛海岸321",
+"市川市":"本八幡543 京成八幡432 市川432 行徳432 南行徳332 妙典321 市川大野211 市川塩浜110 二俣新町110 国府台211 市川真間321 菅野211 鬼越211 京成中山211 北国分110",
+"船橋市":"船橋543 京成船橋543 西船橋443 下総中山321 東船橋321 南船橋211 船橋法典210 馬込沢211 塚田211 新船橋211 東中山211 京成西船221 海神211 大神宮下211 船橋競馬場211 原木中山211 前原211 薬園台211 習志野211 北習志野321 高根木戸211 高根公団211 滝不動210 三咲210 二和向台210 東海神211 飯山満210 船橋日大前110 小室110",
+"松戸市":"松戸543 新松戸432 幸谷321 八柱321 新八柱321 東松戸211 北松戸221 馬橋321 北小金321 六実210 元山211 五香321 常盤平211 みのり台211 松戸新田211 上本郷211 小金城趾110 矢切110 秋山110 松飛台110 大町100",
+"柏市":"柏543:千葉北西部の深夜の中心 南柏321 北柏211 豊四季211 新柏211 増尾210 逆井210 高柳210 柏の葉キャンパス321 柏たなか110",
+"習志野市":"津田沼543 新津田沼432 京成津田沼322 新習志野211 谷津211 京成大久保321 実籾211",
+"浦安市":"浦安432 新浦安432 舞浜321",
+"流山市":"流山おおたかの森321 南流山321 流山セントラルパーク210 初石210 江戸川台210 運河210",
+"八千代市":"八千代台321 勝田台321 東葉勝田台321 八千代緑が丘321 八千代中央211 京成大和田211 村上210",
+"我孫子市":"我孫子321 天王台211",
+"鎌ケ谷市":"新鎌ヶ谷321",
+"成田市":"成田321 京成成田321 公津の杜210 成田空港111 空港第２ビル111",
+"佐倉市":"ユーカリが丘211 京成臼井210 志津211 佐倉210 京成佐倉211 地区センター100 公園100 女子大100 中学校100 井野100",
+"四街道市":"四街道211",
+"市原市":"五井321 八幡宿211 姉ケ崎210 ちはら台210",
+"木更津市":"木更津321",
+"印西市":"千葉ニュータウン中央211 印西牧の原210",
+"茂原市":"茂原211",
+"東金市":"東金210",
+"水戸市":"水戸421 赤塚210",
+"土浦市":"土浦321 荒川沖210",
+"つくば市":"つくば321 研究学園211",
+"取手市":"取手321",
+"守谷市":"守谷321",
+"牛久市":"牛久211 ひたち野うしく210",
+"ひたちなか市":"勝田321",
+"日立市":"日立211",
+"古河市":"古河211",
+"石岡市":"石岡210",
+"龍ケ崎市":"佐貫210",
+"笠間市":"友部210",
+"筑西市":"下館210",
+"つくばみらい市":"みらい平210",
+"かすみがうら市":"神立210",
+"宇都宮市":"宇都宮432:北関東で一番深夜に強い 東武宇都宮432 雀宮210 岡本210",
+"小山市":"小山321",
+"足利市":"足利211 足利市211",
+"栃木市":"栃木211 新栃木210",
+"佐野市":"佐野210",
+"鹿沼市":"鹿沼210 新鹿沼210",
+"那須塩原市":"那須塩原210 黒磯210 西那須野210",
+"下野市":"自治医大210 石橋210",
+"日光市":"今市210 下今市210",
+"高崎市":"高崎432:群馬で一番深夜に強い 高崎問屋町210 井野210",
+"前橋市":"前橋321 中央前橋321 新前橋321",
+"太田市":"太田321",
+"伊勢崎市":"伊勢崎321 新伊勢崎211",
+"桐生市":"桐生210 新桐生210",
+"館林市":"館林211",
+"邑楽郡大泉町":"西小泉210",
+"渋川市":"渋川210",
+"藤岡市":"群馬藤岡210",
+"沼田市":"沼田210"
+};
 
 const COLORS=["--l0","--l1","--l2","--l3","--l4","--l5"].map(v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim());
 const LABEL=["ほぼ無し","まばら","少なめ","そこそこ","多い","激アツ"];
+const DESC=["深夜は期待できない","深夜に開いている店はわずか","開いている店は少なめ","駅前に遅くまで開く店がある","深夜営業の店が多い","深夜でも店が多く、注文も途切れにくい"];
 const TIMES=["22〜24時","0〜2時","2時以降"];
+const BLOB=[0,250,400,550,750,950]; // 勢力圏の半径(m)
 let t=0;
 try{const s=+localStorage.getItem("nd-t");if(s>=0&&s<=2)t=s}catch(e){}
 
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const lvlTag=l=>`<span class="lvl" style="background:${COLORS[l]};color:${l<2?'#fff':'#111'}">${l} ${LABEL[l]}</span>`;
 const dots=l=>`<span class="dots">${[1,2,3,4,5].map(i=>`<i style="${i<=l?'background:'+COLORS[l]:''}"></i>`).join("")}</span>`;
+const rows=L=>TIMES.map((tm,i)=>`<div class="row${i===t?' cur':''}"><span>${tm}</span>${dots(L[i])}<span>${LABEL[L[i]]}</span></div>`).join("");
 const areaOf=n=>AREA[n]||[0,0,0,""];
+const shortName=n=>n.replace(/^.+?郡/,"");
+const clamp=v=>Math.max(0,Math.min(5,v));
 
-const map=L.map("map",{zoomControl:true,preferCanvas:false}).setView([35.69,139.70],innerWidth<600?10:11);
-L.tileLayer("https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png",{maxZoom:18,attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院タイル</a> | 行政区域: 国土数値情報'}).addTo(map);
+// STA を { 区市町村: { 駅名: {L:[..], note} } } に展開
+const OVR={};
+for(const [mu,str] of Object.entries(STA)){
+  OVR[mu]={};
+  for(const tok of str.split(/\s+/)){
+    const m=tok.match(/^(.+?)(\d)(\d)(\d)(?::(.*))?$/);
+    if(m)OVR[mu][m[1]]={L:[+m[2],+m[3],+m[4]],note:m[5]||""};
+  }
+}
+// 書いていない駅：区市町村のレベル-1、乗り入れ3路線以上なら+1（最大3）
+function autoLevel(st){
+  const a=areaOf(st.mu),bonus=st.k>=3?1:0;
+  return [0,1,2].map(i=>Math.min(3,clamp(a[i]-1+bonus)));
+}
 
-// 市区町村ポリゴン
-let geo,feats=[];
+const map=L.map("map",{preferCanvas:true}).setView([35.70,139.74],11);
+L.tileLayer("https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png",{maxZoom:18,attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院タイル</a> | 行政区域: 国土数値情報 | 駅: 駅データ.jp'}).addTo(map);
+
+let ST=[],geo,blobs=[],dotsL=[];
+const blobLayer=L.layerGroup().addTo(map);
+const dotLayer=L.layerGroup().addTo(map);
+const labelLayer=L.layerGroup().addTo(map);
+
+// 区市町村ポリゴン（うっすら）
 function styleFor(f){const l=areaOf(f.properties.n)[t];
-  return {color:"#0e1117",weight:1,opacity:.9,fillColor:COLORS[l],fillOpacity:l?0.30+l*0.08:0.12}}
-function popupFor(n,p,spots){
-  const a=areaOf(n);
-  return `<div class="pop"><h3>${n.replace(/^.+?郡/,"")}</h3><div class="pf">${p}</div>`+
-    TIMES.map((tm,i)=>`<div class="row${i===t?' cur':''}"><span>${tm}</span>${dots(a[i])}<span>${LABEL[a[i]]}</span></div>`).join("")+
-    (a[3]?`<p>${a[3]}</p>`:"")+
-    (spots.length?`<div class="spots">狙い目：${spots.join("・")}</div>`:"")+`</div>`;
+  return {color:"#5a6375",weight:1,opacity:.6,fillColor:COLORS[l],fillOpacity:l?0.05+l*0.025:0.02}}
+function wardPopup(n,p){
+  const a=areaOf(n),top=ST.filter(s=>s.mu===n).sort((x,y)=>y.L[t]-x.L[t]||y.k-x.k).slice(0,10);
+  return `<div class="pop"><h3>${esc(shortName(n))}</h3><div class="pf">${p} ・ 駅 ${ST.filter(s=>s.mu===n).length}</div>`+rows(a)+
+    (a[3]?`<p>${esc(a[3])}</p>`:"")+
+    (top.length?`<div class="pf" style="margin-top:8px">${TIMES[t]}の上位駅</div><div class="top">`+
+      top.map(s=>`<button data-i="${s.i}" style="background:${COLORS[s.L[t]]};color:${s.L[t]<2?'#fff':'#111'}">${esc(s.n)}</button>`).join("")+`</div>`+
+      `<button class="btn more" data-ward="${esc(n)}">この区市の駅をすべて見る</button>`:"")+`</div>`;
 }
-fetch("kanto.geojson").then(r=>r.json()).then(g=>{
+function stationPopup(s){
+  return `<div class="pop"><h3>${esc(s.n)}駅</h3><div class="pf">${s.pref} ${esc(shortName(s.mu))} ・ ${s.k}路線</div>`+rows(s.L)+
+    `<p>${esc(s.note||DESC[s.L[t]])}</p></div>`;
+}
+
+Promise.all([fetch("kanto.geojson").then(r=>r.json()),fetch("stations.json").then(r=>r.json())]).then(([g,stations])=>{
+  const prefOf={};
   geo=L.geoJSON(g,{style:styleFor,onEachFeature:(f,layer)=>{
-    feats.push(layer);
-    layer.on("click",e=>{
-      const spots=SPOT.filter(s=>pointIn(layer,s[1],s[2])).sort((a,b)=>b[3+t]-a[3+t]).map(s=>s[0]);
-      L.popup().setLatLng(e.latlng).setContent(popupFor(f.properties.n,f.properties.p,spots)).openOn(map);
-    });
+    prefOf[f.properties.n]=f.properties.p;
+    layer.on("click",e=>L.popup().setLatLng(e.latlng).setContent(wardPopup(f.properties.n,f.properties.p)).openOn(map));
   }}).addTo(map);
-  geo.bringToBack();
-}).catch(()=>{document.getElementById("map").insertAdjacentHTML("afterbegin",'<p style="position:absolute;z-index:999;padding:12px">境界データを読み込めませんでした。</p>')});
-
-// 点がポリゴン内か（クリックしたエリアのスポット一覧用）
-function pointIn(layer,lat,lng){
-  if(!layer.getBounds().contains([lat,lng]))return false;
-  const polys=layer.feature.geometry.coordinates;
-  return polys.some(poly=>{let inside=false;const r=poly[0];
-    for(let i=0,j=r.length-1;i<r.length;j=i++){const [xi,yi]=r[i],[xj,yj]=r[j];
-      if((yi>lat)!==(yj>lat)&&lng<(xj-xi)*(lat-yi)/(yj-yi)+xi)inside=!inside}
-    return inside});
-}
-
-// スポット
-const spotLayer=L.layerGroup().addTo(map);
-const markers=SPOT.map(s=>{
-  const m=L.circleMarker([s[1],s[2]],{radius:6,weight:2,color:"#0e1117"});
-  m.bindTooltip(s[0],{permanent:true,direction:"right",offset:[6,0],className:"tag"});
-  m.on("click",()=>m.bindPopup(`<div class="pop"><h3>${s[0]}</h3>`+
-    TIMES.map((tm,i)=>`<div class="row${i===t?' cur':''}"><span>${tm}</span>${dots(s[3+i])}<span>${LABEL[s[3+i]]}</span></div>`).join("")+
-    (s[6]?`<p>${s[6]}</p>`:"")+`</div>`).openPopup());
-  m.addTo(spotLayer);return m;
-});
-function restyleSpots(){
-  markers.forEach((m,i)=>{const l=SPOT[i][3+t];
-    m.setStyle({fillColor:COLORS[l],fillOpacity:l?1:.4,radius:3+l*1.6,opacity:l?1:.4});
-    if(l>=4)m.bringToFront();
+  ST=stations.map(([n,lat,lon,k,mu],i)=>{
+    const o=OVR[mu]&&OVR[mu][n];
+    return {i,n,lat,lon,k,mu,pref:prefOf[mu]||"",L:o?o.L:autoLevel({k,mu}),note:o?o.note:""};
   });
-}
-function updateTags(){document.getElementById("map").classList.toggle("hide-tags",map.getZoom()<13)}
-map.on("zoomend",updateTags);updateTags();
+  ST.forEach(s=>{
+    blobs.push(L.circle([s.lat,s.lon],{radius:1,stroke:false,interactive:false}).addTo(blobLayer));
+    const d=L.circleMarker([s.lat,s.lon],{weight:1.5,color:"#0e1117"}).addTo(dotLayer);
+    d.on("click",()=>openStation(s,false));
+    dotsL.push(d);
+  });
+  $("names").innerHTML=[...new Set(ST.map(s=>s.n))].map(n=>`<option value="${esc(n)}">`).join("");
+  buildWardSelect(g);
+  setTime(t);
+}).catch(e=>{$("map").insertAdjacentHTML("afterbegin",'<p style="position:absolute;z-index:999;padding:12px">データを読み込めませんでした。</p>');console.error(e)});
 
-// 凡例・ランキング
-document.getElementById("legend").innerHTML=[5,4,3,2,1,0].map(l=>`<span><i style="background:${COLORS[l]}"></i>${l} ${LABEL[l]}</span>`).join("");
+function openStation(s,fly){
+  if(fly)map.setView([s.lat,s.lon],Math.max(map.getZoom(),14));
+  L.popup().setLatLng([s.lat,s.lon]).setContent(stationPopup(s)).openOn(map);
+}
+$("map").addEventListener("click",e=>{
+  const b=e.target.closest(".pop button");if(!b)return;
+  if(b.dataset.i)openStation(ST[+b.dataset.i],true);
+  if(b.dataset.ward){$("ward").value=b.dataset.ward;showAll=true;renderRank();$("ward").scrollIntoView({behavior:"smooth",block:"start"})}
+});
+
+function restyle(){
+  if(geo)geo.setStyle(styleFor);
+  ST.forEach((s,i)=>{const l=s.L[t];
+    blobs[i].setRadius(BLOB[l]).setStyle({fillColor:COLORS[l],fillOpacity:l>=2?0.10+l*0.03:0.08});
+    dotsL[i].setStyle({fillColor:COLORS[l],fillOpacity:1,opacity:l?1:.5,radius:2.5+l*1.1});
+  });
+  // 上位の駅を手前に
+  ST.slice().sort((a,b)=>a.L[t]-b.L[t]).forEach(s=>{if(s.L[t]>=3)dotsL[s.i].bringToFront()});
+  updateLabels();
+}
+
+// ズームに応じて駅名を出す（多すぎると重いので画面内だけ）
+function updateLabels(){
+  labelLayer.clearLayers();
+  const z=map.getZoom(),min=z>=14?0:z>=13?2:z>=12?3:z>=11?4:z>=10?5:9;
+  const b=map.getBounds().pad(0.05),boxes=[];let n=0;
+  for(const s of ST.slice().sort((a,b)=>b.L[t]-a.L[t]||b.k-a.k)){
+    if(s.L[t]<min||n>=260)break;
+    if(!b.contains([s.lat,s.lon]))continue;
+    // レベルの高い駅を優先し、ほかの駅名と重なるものは出さない
+    const p=map.latLngToContainerPoint([s.lat,s.lon]),x=p.x+5+s.L[t],w=s.n.length*(s.L[t]>=5?13:11)+10;
+    const box=[x,p.y-9,x+w,p.y+9];
+    if(boxes.some(o=>box[0]<o[2]&&o[0]<box[2]&&box[1]<o[3]&&o[1]<box[3]))continue;
+    boxes.push(box);
+    labelLayer.addLayer(L.marker([s.lat,s.lon],{interactive:false,keyboard:false,
+      icon:L.divIcon({className:"lab",iconSize:[0,0],iconAnchor:[-(5+s.L[t]),0],html:`<span class="${s.L[t]>=5?'big':''}">${esc(s.n)}</span>`})}));
+    n++;
+  }
+}
+map.on("moveend",updateLabels);
+
+// 凡例
+$("legend").innerHTML=[5,4,3,2,1,0].map(l=>`<span><i style="background:${COLORS[l]}"></i>${l} ${LABEL[l]}</span>`).join("");
+
+// 区市ごとの駅ランキング
+const PREF_ORDER=["東京都","神奈川県","埼玉県","千葉県","茨城県","栃木県","群馬県"];
+function buildWardSelect(g){
+  const has=new Set(ST.map(s=>s.mu));
+  $("ward").innerHTML=`<option value="">関東全体（上位）</option>`+PREF_ORDER.map(p=>
+    `<optgroup label="${p}">`+g.features.filter(f=>f.properties.p===p&&has.has(f.properties.n))
+      .map(f=>`<option value="${esc(f.properties.n)}">${esc(shortName(f.properties.n))}</option>`).join("")+`</optgroup>`).join("");
+  try{const w=localStorage.getItem("nd-ward");if(w&&has.has(w))$("ward").value=w}catch(e){}
+}
 let showAll=false;
 function renderRank(){
-  document.getElementById("rank-h").textContent=`狙い目スポット（${TIMES[t]}）`;
-  const list=SPOT.map((s,i)=>[s,i]).filter(([s])=>s[3+t]>=3).sort((a,b)=>b[0][3+t]-a[0][3+t]||b[0][3]-a[0][3]);
-  const more=document.getElementById("more");
-  more.hidden=showAll||list.length<=12;more.textContent=`もっと見る（全${list.length}か所）`;
-  document.getElementById("rank").innerHTML=(showAll?list:list.slice(0,12)).map(([s,i])=>
-    `<button data-i="${i}">${lvlTag(s[3+t])}<span><b>${s[0]}</b><small>${s[6]||"駅前に深夜の店あり"}</small></span></button>`).join("");
+  const w=$("ward").value;
+  $("rank-h").textContent=`狙い目の駅（${TIMES[t]}）`;
+  const list=ST.filter(s=>w?s.mu===w:s.L[t]>=3).sort((a,b)=>b.L[t]-a.L[t]||b.L[0]-a.L[0]||b.k-a.k);
+  const lim=w?20:24;
+  $("more").hidden=showAll||list.length<=lim;$("more").textContent=`もっと見る（全${list.length}駅）`;
+  $("rank").innerHTML=(showAll?list:list.slice(0,lim)).map(s=>
+    `<button data-i="${s.i}">${lvlTag(s.L[t])}<span><b>${esc(s.n)}</b><small>${w?"":esc(shortName(s.mu))+"・"}${esc(s.note||DESC[s.L[t]])}</small></span></button>`).join("")||`<p class="note">この区市には駅がありません。</p>`;
 }
-document.getElementById("more").addEventListener("click",()=>{showAll=true;renderRank()});
-document.getElementById("rank").addEventListener("click",e=>{
-  const b=e.target.closest("button");if(!b)return;const s=SPOT[+b.dataset.i];
-  map.flyTo([s[1],s[2]],14);markers[+b.dataset.i].fire("click");
-  document.getElementById("map").scrollIntoView({behavior:"smooth"});
+$("ward").addEventListener("change",()=>{showAll=false;try{localStorage.setItem("nd-ward",$("ward").value)}catch(e){}
+  const w=$("ward").value;renderRank();
+  if(w&&geo)geo.eachLayer(l=>{if(l.feature.properties.n===w)map.fitBounds(l.getBounds(),{maxZoom:14})});
 });
+$("more").addEventListener("click",()=>{showAll=true;renderRank()});
+$("rank").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  $("map").scrollIntoView({behavior:"smooth"});openStation(ST[+b.dataset.i],true);
+});
+
+// 駅名検索
+function search(){
+  const q=$("q").value.trim().replace(/駅$/,"");if(!q)return;
+  const s=ST.find(s=>s.n===q)||ST.filter(s=>s.n.includes(q)).sort((a,b)=>b.k-a.k)[0];
+  if(s){openStation(s,true);$("q").blur()}else alert(`「${q}」が見つかりませんでした`);
+}
+$("q").addEventListener("change",search);
+$("q").addEventListener("keydown",e=>{if(e.key==="Enter")search()});
 
 // 時間帯切り替え
 function setTime(n){t=n;
   try{localStorage.setItem("nd-t",n)}catch(e){}
   document.querySelectorAll("#times button").forEach(b=>b.classList.toggle("on",+b.dataset.t===t));
-  if(geo)geo.setStyle(styleFor);restyleSpots();renderRank();map.closePopup();
+  map.closePopup();restyle();renderRank();
 }
-document.getElementById("times").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setTime(+b.dataset.t)});
-setTime(t);
+$("times").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setTime(+b.dataset.t)});
 
 // 現在地
 let me;
-document.getElementById("locate").addEventListener("click",()=>map.locate({setView:true,maxZoom:13}));
+$("locate").addEventListener("click",()=>map.locate({setView:true,maxZoom:14}));
 map.on("locationfound",e=>{if(me)me.remove();me=L.circleMarker(e.latlng,{radius:8,color:"#fff",weight:3,fillColor:"#2f6bff",fillOpacity:1}).addTo(map)});
 map.on("locationerror",()=>alert("現在地を取得できませんでした。位置情報の許可を確認してください。"));
 </script>
