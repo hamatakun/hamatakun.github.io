@@ -9,7 +9,7 @@
 <style>
 /* 地図を主役に、下に「起点から近い順」の店リスト。夜に見るので暗い配色 */
 :root{--bg:#0e1117;--card:#161b24;--tx:#e8ebf2;--sub:#98a1b5;--line:#2a3140;--pri:#6b94ff;
-  --c0:#f4842c;--c1:#e9c46a;--c2:#e63950;--c3:#2a9d8f;--c4:#4c8dff;--c5:#b07cf0;--c6:#7bc96f;--c7:#ff8fab;--c8:#5ec8e5;--c9:#c9a26b;color-scheme:dark}
+  --c0:#f4842c;--c1:#e9c46a;--c2:#e63950;--c3:#2a9d8f;--c4:#4c8dff;--c5:#b07cf0;--c6:#7bc96f;--c7:#ff8fab;--c8:#5ec8e5;--c9:#c9a26b;--c10:#c6e377;color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.6 system-ui,"Hiragino Sans","Meiryo",sans-serif}
 .wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -63,7 +63,7 @@ main{padding-block:12px 40px}
 <body>
 <header class="wrap">
   <h1>足立区まわりのチェーン店分布</h1>
-  <p>吉野家・デニーズ・バーガーキング・魁力屋・宅配ピザ3社・目利きの銀次・魚民・福福屋の10チェーンの店を1店ずつ地図に置いています。丸の中の字がチェーン、まわりのぼんやりした色が店の多さ。輪は起点から3km・5km・10km。</p>
+  <p>東京都・埼玉県・千葉県の、吉野家・デニーズ・バーガーキング・魁力屋・宅配ピザ3社・目利きの銀次・魚民・福福屋・ローソンの店を1店ずつ地図に置いています。丸の色がチェーン（拡大すると中に字が出ます）、まわりのぼんやりした色が店の多さ。輪は起点から3km・5km・10km。</p>
 </header>
 <div class="wrap bar">
   <div class="chips" id="chips"></div>
@@ -96,8 +96,9 @@ main{padding-block:12px 40px}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-const MARK=["吉","D","B","魁","ド","ハ","ラ","銀","魚","福"]; // 地図の丸に入れる字（チェーンの並びは chain-stores.json と同じ）
-const COLOR=["--c0","--c1","--c2","--c3","--c4","--c5","--c6","--c7","--c8","--c9"].map(css);
+const MARK=["吉","D","B","魁","ド","ハ","ラ","銀","魚","福","ロ"]; // 地図の丸に入れる字（チェーンの並びは chain-stores.json と同じ）
+const COLOR=MARK.map((_,i)=>css("--c"+i));
+const PREFS=["東京都","埼玉県","千葉県"];
 const BASES={ward:{name:"足立区役所",ll:[35.7750,139.8044]},kitasenju:{name:"北千住駅",ll:[35.7493,139.8048]},me:{name:"現在地",ll:null}};
 const RINGS=[3,5,10];
 
@@ -112,17 +113,19 @@ const pinHtml=c=>`<div class="pin" style="background:${COLOR[c]}">${MARK[c]}</di
 
 const map=L.map("map",{preferCanvas:true,zoomSnap:0.5}).setView(BASES.ward.ll,12.5);
 L.tileLayer("https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png",{maxZoom:18,attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院タイル</a> | 行政区域: 国土数値情報 | 駅: 駅データ.jp | 店舗: <a href="https://overturemaps.org/" target="_blank">Overture Maps</a>'}).addTo(map);
-const heat=L.layerGroup().addTo(map),ringL=L.layerGroup().addTo(map),stL=L.layerGroup().addTo(map),pins=L.layerGroup().addTo(map);
+const heat=L.layerGroup().addTo(map),ringL=L.layerGroup().addTo(map),stL=L.layerGroup().addTo(map),pins=L.layerGroup().addTo(map),letters=L.layerGroup().addTo(map);
 let markers=[],blobs=[],STN=[],me=null;
 
 Promise.all([fetch("kanto.geojson").then(r=>r.json()),fetch("stations.json").then(r=>r.json()),fetch("chain-stores.json").then(r=>r.json())]).then(([g,stations,cs])=>{
   // 区市町村の境目。足立区だけ太く
-  L.geoJSON(g,{interactive:false,style:f=>f.properties.n==="足立区"?{color:"#e8ebf2",weight:2.5,opacity:.9,fill:false}:{color:"#5a6375",weight:1,opacity:.5,fill:false}}).addTo(map);
+  L.geoJSON(g,{interactive:false,filter:f=>PREFS.includes(f.properties.p),style:f=>f.properties.n==="足立区"?{color:"#e8ebf2",weight:2.5,opacity:.9,fill:false}:{color:"#5a6375",weight:1,opacity:.5,fill:false}}).addTo(map);
   STN=stations;CH=cs.chains;
   SS=cs.stores.map(([c,lat,lon,name,mu,st,stm],i)=>({i,c,ll:[lat,lon],name,mu,st,stm}));
   SS.forEach(s=>{
-    blobs.push(L.circle(s.ll,{radius:700,stroke:false,fillColor:COLOR[s.c],fillOpacity:.13,interactive:false}));
-    const m=L.marker(s.ll,{icon:L.divIcon({className:"",html:pinHtml(s.c),iconSize:[22,22],iconAnchor:[11,11]}),keyboard:false});
+    // ローソンは数が多いので勢力圏を小さめに
+    blobs.push(L.circle(s.ll,{radius:MARK[s.c]==="ロ"?350:700,stroke:false,fillColor:COLOR[s.c],fillOpacity:.13,interactive:false}));
+    // 店の丸はキャンバスで描く（数千店あっても軽い）。字は拡大したときだけ上に重ねる
+    const m=L.circleMarker(s.ll,{radius:MARK[s.c]==="ロ"?5:7,weight:2,color:"#0e1117",fillColor:COLOR[s.c],fillOpacity:1});
     m.on("click",()=>openStore(s,false));
     markers.push(m);
   });
@@ -148,8 +151,20 @@ function draw(){
     L.circle(b,{radius:r*1000,color:"#cfd6e4",weight:1.2,opacity:.55,dashArray:"4 6",fill:false,interactive:false}).addTo(ringL);
     L.marker([b[0]+r/111.32,b[1]],{interactive:false,keyboard:false,icon:L.divIcon({className:"ring",iconSize:[0,0],html:`<span>${r}km</span>`})}).addTo(ringL);
   });
-  updateStations();renderList();
+  updateStations();updateLetters();renderList();
 }
+// 拡大したら、画面内の店の丸に字を重ねる
+function updateLetters(){
+  letters.clearLayers();
+  if(map.getZoom()<14)return;
+  const bd=map.getBounds();let n=0;
+  for(const s of SS){
+    if(!on[s.c]||!bd.contains(s.ll))continue;
+    letters.addLayer(L.marker(s.ll,{interactive:false,keyboard:false,icon:L.divIcon({className:"",html:pinHtml(s.c),iconSize:[22,22],iconAnchor:[11,11]})}));
+    if(++n>400)break;
+  }
+}
+map.on("moveend",updateLetters);
 
 // 駅名は拡大したときだけ（店の位置の目印）
 function updateStations(){

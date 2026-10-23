@@ -1,4 +1,4 @@
-"""指定したチェーンの店舗を1店ずつ取り出して chain-stores.json を作る（足立区版マップ用）。
+"""指定したチェーンの店舗を1店ずつ取り出して chain-stores.json を作る（足立区版マップ用。東京都・埼玉県・千葉県の店）。
 
 使い方:
   python3 tools/extract_overture.py kanto_places.json
@@ -27,7 +27,12 @@ CHAINS = [
     ('目利きの銀次', r'目利きの銀次', None, 200, 400),
     ('魚民', r'魚民|uotami', r'すし', 200, 400),
     ('福福屋', r'福福屋|ふくふく屋', None, 200, 400),
+    ('ローソン', r'ローソン|lawson', r'銀行|ATM|atm', 80, 120),
 ]
+# 飲食店ではないチェーン（データ上の分類が food_and_drink ではない）は、この分類だけを数える
+CATEGORY = {'ローソン': 'convenience_store'}
+# 地図に入れる都県
+PREFS = ('東京都', '埼玉県', '千葉県')
 BRANCH_NOISE = r'[\s・･()（）〈〉\-]|京都北白川|ラーメン|ピザ|pizza|海鮮楽屋|店$'
 
 
@@ -43,6 +48,7 @@ def meters(lat1, lon1, lat2, lon2):
 
 
 geo = json.load(open(os.path.join(HERE, '..', 'kanto.geojson')))
+pref_of = {f['properties']['n']: f['properties']['p'] for f in geo['features']}
 areas = []
 for f in geo['features']:
     rings = [p[0] for p in f['geometry']['coordinates']]
@@ -74,11 +80,12 @@ places = json.load(open(sys.argv[1]))
 found = defaultdict(list)
 for r in places:
     h = r['h'] or []
-    if not h or h[0] != 'food_and_drink':
-        continue
+    food = bool(h) and h[0] == 'food_and_drink'
     # 店名で判定する（ブランド欄はほかの店の名前が入っていることがある）
     text = r['n'] or r['b'] or ''
     for i, (name, pat, ng, *_) in enumerate(CHAINS):
+        if (r['tx'] != CATEGORY[name]) if name in CATEGORY else not food:
+            continue
         if re.search(pat, text, re.I) and not (ng and re.search(ng, text)):
             found[i].append(r)
             break
@@ -101,8 +108,8 @@ for i, rows in found.items():
             kept.append(r)
     for r in kept:
         mu = muni(r['y'], r['x'])
-        if not mu:
-            continue  # 関東の1都6県の外
+        if pref_of.get(mu) not in PREFS:
+            continue
         st = min(stations, key=lambda s: meters(r['y'], r['x'], s[1], s[2]))
         out.append([i, round(r['y'], 5), round(r['x'], 5), r['n'] or CHAINS[i][0], mu, st[0],
                     round(meters(r['y'], r['x'], st[1], st[2]))])
