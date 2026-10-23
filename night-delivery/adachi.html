@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e1117">
+<title>足立区 4チェーン分布</title>
+<link rel="stylesheet" href="lib/leaflet.css">
+<style>
+/* 地図を主役に、下に「起点から近い順」の店リスト。夜に見るので暗い配色 */
+:root{--bg:#0e1117;--card:#161b24;--tx:#e8ebf2;--sub:#98a1b5;--line:#2a3140;--pri:#6b94ff;
+  --c0:#f4842c;--c1:#e9c46a;--c2:#e63950;--c3:#2a9d8f;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.6 system-ui,"Hiragino Sans","Meiryo",sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{padding-block:12px 8px}
+h1{margin:0;font-size:20px;text-wrap:balance}
+header p{margin:2px 0 0;color:var(--sub);font-size:12px}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-block:0 8px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--tx);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.chip.off{opacity:.4}
+.chip i{width:20px;height:20px;border-radius:50%;display:inline-grid;place-items:center;font-style:normal;font-size:11px;font-weight:800;color:#111}
+.chip small{color:var(--sub);font-weight:500}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{padding:8px 10px;border:0;background:var(--card);color:var(--tx);font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--pri);color:#fff}
+.btn{padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--tx);font:inherit;font-size:13px;cursor:pointer}
+button:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+#map{height:68vh;min-height:380px;max-width:1100px;margin:0 auto;background:#1a1f29}
+@media(min-width:900px){#map{height:74vh;border-radius:12px}}
+.leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.8) contrast(.9) saturate(.35)}
+.leaflet-container{font:inherit}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--card);color:var(--tx)}
+.leaflet-popup-content{margin:12px 14px;min-width:200px}
+.leaflet-container a.leaflet-popup-close-button{color:var(--sub)}
+.leaflet-control-attribution{background:rgba(14,17,23,.75)!important;color:var(--sub)!important;font-size:10px}
+.leaflet-control-attribution a{color:var(--sub)!important}
+.pin{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;color:#111;border:2px solid #0e1117;box-shadow:0 0 0 1px rgba(255,255,255,.35)}
+.lab span{position:absolute;left:0;top:0;transform:translateY(-50%);white-space:nowrap;font-size:11px;font-weight:600;line-height:1;padding:2px 4px;border-radius:4px;background:rgba(14,17,23,.75);color:var(--sub);pointer-events:none}
+.ring span{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font-size:11px;font-weight:700;color:#cfd6e4;background:rgba(14,17,23,.8);padding:1px 5px;border-radius:4px;pointer-events:none}
+.pop h3{margin:0 0 2px;font-size:16px}
+.pop .pf{color:var(--sub);font-size:12px}
+.pop p{margin:6px 0 0;font-size:13px}
+main{padding-block:12px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.card h2{margin:0;font-size:16px}
+.list-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.list-head h2{flex:1;min-width:160px}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.list button{display:flex;gap:10px;align-items:center;text-align:left;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit;cursor:pointer;min-width:0}
+.list .pin{flex:none}
+.list b{display:block;font-size:14px;overflow-wrap:anywhere}
+.list small{display:block;color:var(--sub);font-size:12px;line-height:1.45}
+.list .km{margin-left:auto;flex:none;font-variant-numeric:tabular-nums;font-weight:700;font-size:14px}
+#more{margin-top:10px;width:100%}
+.note{font-size:12px;color:var(--sub)}
+.note a{color:inherit}
+#msg{color:var(--c1);font-size:13px;margin:0 0 8px}
+</style>
+</head>
+<body>
+<header class="wrap">
+  <h1>足立区まわりの 吉野家・デニーズ・バーガーキング・魁力屋</h1>
+  <p>4チェーンの店を1店ずつ地図に置いています。丸の中の字がチェーン、まわりのぼんやりした色が店の多さ。輪は起点から3km・5km・10km。</p>
+</header>
+<div class="wrap bar">
+  <div class="chips" id="chips"></div>
+</div>
+<div class="wrap bar">
+  <span class="note">起点</span>
+  <div class="seg" id="base">
+    <button data-b="ward">足立区役所</button><button data-b="kitasenju">北千住駅</button><button data-b="me">現在地</button>
+  </div>
+  <a class="btn" href="index.html" style="text-decoration:none">関東全体の地図へ</a>
+</div>
+<div class="wrap"><p id="msg" hidden></p></div>
+<div id="map"></div>
+<main class="wrap">
+  <div class="card">
+    <div class="list-head">
+      <h2 id="list-h">起点から近い店</h2>
+      <div class="seg" id="range">
+        <button data-r="3">3km</button><button data-r="5">5km</button><button data-r="10">10km</button>
+      </div>
+    </div>
+    <div class="list" id="list"></div>
+    <button class="btn" id="more">もっと見る</button>
+  </div>
+  <p class="note">※店の場所は <a href="https://overturemaps.org/">Overture Maps</a> の店舗データ（2026年9月版）です。同じ店が少しずれて2回入っているものはまとめていますが、閉店した店が残っていたり、新しい店が入っていなかったりすることがあります。営業時間とアプリへの加盟は店ごとに違うので、注文用のアプリで確認してください。<br>
+  店舗：Overture Maps Foundation（CDLA Permissive 2.0 ほか、OpenStreetMap 由来の部分は © OpenStreetMap contributors, ODbL）。駅の位置：<a href="https://github.com/piuccio/open-data-jp-railway-stations">open-data-jp-railway-stations</a>（駅データ.jp ほか）。境界データ：国土数値情報（行政区域データ）国土交通省／スマートニュース メディア研究所 加工。背景地図：地理院タイル。</p>
+</main>
+<script src="lib/leaflet.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const MARK=["吉","D","B","魁"]; // 地図の丸に入れる字（チェーンの並びは chain-stores.json と同じ）
+const COLOR=["--c0","--c1","--c2","--c3"].map(css);
+const BASES={ward:{name:"足立区役所",ll:[35.7750,139.8044]},kitasenju:{name:"北千住駅",ll:[35.7493,139.8048]},me:{name:"現在地",ll:null}};
+const RINGS=[3,5,10];
+
+let base="ward",range=5,showAll=false,on=[true,true,true,true],CH=[],SS=[];
+try{const b=localStorage.getItem("ad-base");if(b==="ward"||b==="kitasenju")base=b;
+  const r=+localStorage.getItem("ad-range");if(r)range=r;
+  const o=JSON.parse(localStorage.getItem("ad-on")||"null");if(Array.isArray(o)&&o.length===4)on=o}catch(e){}
+const save=()=>{try{localStorage.setItem("ad-base",base==="me"?"ward":base);localStorage.setItem("ad-range",range);localStorage.setItem("ad-on",JSON.stringify(on))}catch(e){}};
+
+function km(a,b){const dy=(b[0]-a[0])*111.32,dx=(b[1]-a[1])*111.32*Math.cos(a[0]*Math.PI/180);return Math.hypot(dx,dy)}
+const pinHtml=c=>`<div class="pin" style="background:${COLOR[c]}">${MARK[c]}</div>`;
+
+const map=L.map("map",{preferCanvas:true,zoomSnap:0.5}).setView(BASES.ward.ll,12.5);
+L.tileLayer("https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png",{maxZoom:18,attribution:'<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院タイル</a> | 行政区域: 国土数値情報 | 駅: 駅データ.jp | 店舗: <a href="https://overturemaps.org/" target="_blank">Overture Maps</a>'}).addTo(map);
+const heat=L.layerGroup().addTo(map),ringL=L.layerGroup().addTo(map),stL=L.layerGroup().addTo(map),pins=L.layerGroup().addTo(map);
+let markers=[],blobs=[],STN=[],me=null;
+
+Promise.all([fetch("kanto.geojson").then(r=>r.json()),fetch("stations.json").then(r=>r.json()),fetch("chain-stores.json").then(r=>r.json())]).then(([g,stations,cs])=>{
+  // 区市町村の境目。足立区だけ太く
+  L.geoJSON(g,{interactive:false,style:f=>f.properties.n==="足立区"?{color:"#e8ebf2",weight:2.5,opacity:.9,fill:false}:{color:"#5a6375",weight:1,opacity:.5,fill:false}}).addTo(map);
+  STN=stations;CH=cs.chains;
+  SS=cs.stores.map(([c,lat,lon,name,mu,st,stm],i)=>({i,c,ll:[lat,lon],name,mu,st,stm}));
+  SS.forEach(s=>{
+    blobs.push(L.circle(s.ll,{radius:700,stroke:false,fillColor:COLOR[s.c],fillOpacity:.13,interactive:false}));
+    const m=L.marker(s.ll,{icon:L.divIcon({className:"",html:pinHtml(s.c),iconSize:[22,22],iconAnchor:[11,11]}),keyboard:false});
+    m.on("click",()=>openStore(s,false));
+    markers.push(m);
+  });
+  renderChips();setBase(base);
+}).catch(e=>{$("map").insertAdjacentHTML("afterbegin",'<p style="position:absolute;z-index:999;padding:12px">データを読み込めませんでした。</p>');console.error(e)});
+
+function baseLL(){return base==="me"&&me?me:BASES[base==="me"?"ward":base].ll}
+function openStore(s,fly){
+  if(fly)map.setView(s.ll,Math.max(map.getZoom(),15));
+  L.popup({offset:[0,-8]}).setLatLng(s.ll).setContent(`<div class="pop"><h3>${esc(s.name)}</h3><div class="pf">${esc(CH[s.c])} ・ ${esc(s.mu.replace(/^.+?郡/,""))}</div>`+
+    `<p>最寄り駅：${esc(s.st)}駅から約${s.stm<1000?Math.round(s.stm/10)*10+"m":(s.stm/1000).toFixed(1)+"km"}</p>`+
+    `<p>${esc(BASES[base].name)}から約${km(baseLL(),s.ll).toFixed(1)}km</p></div>`).openOn(map);
+}
+
+function draw(){
+  pins.clearLayers();heat.clearLayers();
+  SS.forEach(s=>{if(on[s.c]){heat.addLayer(blobs[s.i]);pins.addLayer(markers[s.i])}});
+  // 起点と距離の輪
+  ringL.clearLayers();
+  const b=baseLL();
+  L.circleMarker(b,{radius:7,color:"#fff",weight:3,fillColor:"#2f6bff",fillOpacity:1,interactive:false}).addTo(ringL);
+  RINGS.forEach(r=>{
+    L.circle(b,{radius:r*1000,color:"#cfd6e4",weight:1.2,opacity:.55,dashArray:"4 6",fill:false,interactive:false}).addTo(ringL);
+    L.marker([b[0]+r/111.32,b[1]],{interactive:false,keyboard:false,icon:L.divIcon({className:"ring",iconSize:[0,0],html:`<span>${r}km</span>`})}).addTo(ringL);
+  });
+  updateStations();renderList();
+}
+
+// 駅名は拡大したときだけ（店の位置の目印）
+function updateStations(){
+  stL.clearLayers();
+  if(map.getZoom()<13||!STN.length)return;
+  const bd=map.getBounds();let n=0;
+  for(const [name,lat,lon,k] of STN){
+    if(!bd.contains([lat,lon]))continue;
+    if(map.getZoom()<14&&k<2)continue;
+    stL.addLayer(L.circleMarker([lat,lon],{radius:3,color:"#98a1b5",weight:1,fillColor:"#0e1117",fillOpacity:1,interactive:false}));
+    stL.addLayer(L.marker([lat,lon],{interactive:false,keyboard:false,icon:L.divIcon({className:"lab",iconSize:[0,0],iconAnchor:[-6,0],html:`<span>${esc(name)}</span>`})}));
+    if(++n>200)break;
+  }
+}
+map.on("moveend",updateStations);
+// 拡大したらぼんやりした色は消す（店の位置が見えにくくなるため）
+map.on("zoomend",()=>{if(map.getZoom()>=14.5)map.removeLayer(heat);else if(!map.hasLayer(heat))heat.addTo(map)});
+
+// チェーンの切り替え（足立区内の店数も出す）
+function renderChips(){
+  $("chips").innerHTML=CH.map((n,c)=>{
+    const inWard=SS.filter(s=>s.c===c&&s.mu==="足立区").length;
+    return `<button class="chip${on[c]?"":" off"}" data-c="${c}" aria-pressed="${on[c]}"><i style="background:${COLOR[c]}">${MARK[c]}</i>${esc(n)}<small>足立区 ${inWard}店</small></button>`;
+  }).join("");
+}
+$("chips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;const c=+b.dataset.c;on[c]=!on[c];save();renderChips();draw()});
+
+// 起点から近い順のリスト
+function renderList(){
+  const b=baseLL();
+  const list=SS.filter(s=>on[s.c]).map(s=>({s,d:km(b,s.ll)})).filter(x=>x.d<=range).sort((a,b)=>a.d-b.d);
+  const cnt=CH.map((n,c)=>list.filter(x=>x.s.c===c).length);
+  $("list-h").textContent=`${BASES[base].name}から${range}km以内：${list.length}店`+(list.length?`（${CH.map((n,c)=>on[c]?n+cnt[c]:"").filter(Boolean).join("・")}）`:"");
+  document.querySelectorAll("#range button").forEach(x=>x.classList.toggle("on",+x.dataset.r===range));
+  const lim=30;
+  $("more").hidden=showAll||list.length<=lim;$("more").textContent=`もっと見る（全${list.length}店）`;
+  $("list").innerHTML=(showAll?list:list.slice(0,lim)).map(({s,d})=>
+    `<button data-i="${s.i}">${pinHtml(s.c)}<span><b>${esc(s.name)}</b><small>${esc(s.st)}駅 ${s.stm<1000?Math.round(s.stm/10)*10+"m":(s.stm/1000).toFixed(1)+"km"} ・ ${esc(s.mu.replace(/^.+?郡/,""))}</small></span><span class="km">${d.toFixed(1)}km</span></button>`).join("")||`<p class="note">この範囲に店はありません。</p>`;
+}
+$("range").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;range=+b.dataset.r;showAll=false;save();renderList()});
+$("more").addEventListener("click",()=>{showAll=true;renderList()});
+$("list").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;$("map").scrollIntoView({behavior:"smooth"});openStore(SS[+b.dataset.i],true)});
+
+// 起点の切り替え
+function say(m){$("msg").textContent=m;$("msg").hidden=!m}
+function setBase(b){
+  base=b;showAll=false;save();say("");
+  document.querySelectorAll("#base button").forEach(x=>x.classList.toggle("on",x.dataset.b===base));
+  if(b==="me"&&!me){map.locate({setView:false});return}
+  map.closePopup();draw();map.setView(baseLL(),Math.max(map.getZoom(),12.5));
+}
+$("base").addEventListener("click",e=>{const b=e.target.closest("button");if(b)setBase(b.dataset.b)});
+map.on("locationfound",e=>{me=[e.latlng.lat,e.latlng.lng];setBase("me")});
+map.on("locationerror",()=>{say("現在地を取得できませんでした。ブラウザの位置情報の許可を確認してください。");setBase("ward")});
+</script>
+</body>
+</html>
