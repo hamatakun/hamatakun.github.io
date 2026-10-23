@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0e1117">
-<title>足立区 4チェーン分布</title>
+<title>足立区 チェーン店分布</title>
 <link rel="stylesheet" href="lib/leaflet.css">
 <style>
 /* 地図を主役に、下に「起点から近い順」の店リスト。夜に見るので暗い配色 */
 :root{--bg:#0e1117;--card:#161b24;--tx:#e8ebf2;--sub:#98a1b5;--line:#2a3140;--pri:#6b94ff;
-  --c0:#f4842c;--c1:#e9c46a;--c2:#e63950;--c3:#2a9d8f;color-scheme:dark}
+  --c0:#f4842c;--c1:#e9c46a;--c2:#e63950;--c3:#2a9d8f;--c4:#4c8dff;--c5:#b07cf0;--c6:#7bc96f;color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.6 system-ui,"Hiragino Sans","Meiryo",sans-serif}
 .wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -62,8 +62,8 @@ main{padding-block:12px 40px}
 </head>
 <body>
 <header class="wrap">
-  <h1>足立区まわりの 吉野家・デニーズ・バーガーキング・魁力屋</h1>
-  <p>4チェーンの店を1店ずつ地図に置いています。丸の中の字がチェーン、まわりのぼんやりした色が店の多さ。輪は起点から3km・5km・10km。</p>
+  <h1>足立区まわりのチェーン店（吉野家・デニーズ・バーガーキング・魁力屋・宅配ピザ3社）</h1>
+  <p>7チェーンの店を1店ずつ地図に置いています。丸の中の字がチェーン、まわりのぼんやりした色が店の多さ。輪は起点から3km・5km・10km。</p>
 </header>
 <div class="wrap bar">
   <div class="chips" id="chips"></div>
@@ -96,15 +96,15 @@ main{padding-block:12px 40px}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-const MARK=["吉","D","B","魁"]; // 地図の丸に入れる字（チェーンの並びは chain-stores.json と同じ）
-const COLOR=["--c0","--c1","--c2","--c3"].map(css);
+const MARK=["吉","D","B","魁","ド","ハ","ラ"]; // 地図の丸に入れる字（チェーンの並びは chain-stores.json と同じ）
+const COLOR=["--c0","--c1","--c2","--c3","--c4","--c5","--c6"].map(css);
 const BASES={ward:{name:"足立区役所",ll:[35.7750,139.8044]},kitasenju:{name:"北千住駅",ll:[35.7493,139.8048]},me:{name:"現在地",ll:null}};
 const RINGS=[3,5,10];
 
-let base="ward",range=5,showAll=false,on=[true,true,true,true],CH=[],SS=[];
+let base="ward",range=5,showAll=false,on=MARK.map(()=>true),CH=[],SS=[];
 try{const b=localStorage.getItem("ad-base");if(b==="ward"||b==="kitasenju")base=b;
   const r=+localStorage.getItem("ad-range");if(r)range=r;
-  const o=JSON.parse(localStorage.getItem("ad-on")||"null");if(Array.isArray(o)&&o.length===4)on=o}catch(e){}
+  const o=JSON.parse(localStorage.getItem("ad-on")||"null");if(Array.isArray(o)&&o.length===MARK.length)on=o}catch(e){}
 const save=()=>{try{localStorage.setItem("ad-base",base==="me"?"ward":base);localStorage.setItem("ad-range",range);localStorage.setItem("ad-on",JSON.stringify(on))}catch(e){}};
 
 function km(a,b){const dy=(b[0]-a[0])*111.32,dx=(b[1]-a[1])*111.32*Math.cos(a[0]*Math.PI/180);return Math.hypot(dx,dy)}

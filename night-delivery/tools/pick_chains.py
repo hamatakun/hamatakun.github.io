@@ -10,15 +10,27 @@ import json, math, os, re, sys
 from collections import defaultdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-# (表示名, 店名に一致させる正規表現, 除外する正規表現, 重複とみなす距離m)
-# 同じ店が別データ由来で少しずれて入っているので、この距離以内の同じチェーンは1店にまとめる。
-# 駅前に2店あることもある吉野家は短く、近くに2店置かない魁力屋・デニーズは長めにしている。
+# (表示名, 店名に一致させる正規表現, 除外する正規表現, 重複とみなす距離m, 店名なしの重複距離m)
+# 同じ店が別データ由来で少しずれて入っているので、次のどれかに当たるものは1店にまとめる。
+#  - 同じ支店名（「竹の塚店」など）で3km以内
+#  - 同じチェーンで「重複とみなす距離」以内
+#  - 支店名のない記録（店名がチェーン名だけ）で、同じチェーンの店から「店名なしの重複距離」以内
+# 駅前に2店あることもある吉野家は短く、近くに2店置かない魁力屋・デニーズ・宅配ピザは長めにしている。
 CHAINS = [
-    ('吉野家', r'吉野家|yoshinoya', r'そば処', 100),
-    ('デニーズ', r'デニーズ|denny', None, 300),
-    ('バーガーキング', r'バーガーキング|burger king', None, 200),
-    ('魁力屋', r'魁力屋|kairikiya', None, 350),
+    ('吉野家', r'吉野家|yoshinoya', r'そば処', 100, 100),
+    ('デニーズ', r'デニーズ|denny', None, 300, 500),
+    ('バーガーキング', r'バーガーキング|burger king', None, 200, 400),
+    ('魁力屋', r'魁力屋|kairikiya', None, 350, 600),
+    ('ドミノ・ピザ', r'ドミノ|domino', None, 200, 600),
+    ('ピザハット', r'ピザハット|pizza hut', None, 200, 600),
+    ('ピザーラ', r'ピザーラ|pizza-la', None, 200, 600),
 ]
+BRANCH_NOISE = r'[\s・･()（）〈〉\-]|京都北白川|ラーメン|ピザ|pizza|店$'
+
+
+def branch(name, pat):
+    """店名からチェーン名を取り除いた支店名（なければ空文字）。"""
+    return re.sub(BRANCH_NOISE, '', re.sub(pat, '', name or '', flags=re.I), flags=re.I).lower()
 
 
 def meters(lat1, lon1, lat2, lon2):
@@ -63,7 +75,7 @@ for r in places:
         continue
     # 店名で判定する（ブランド欄はほかの店の名前が入っていることがある）
     text = r['n'] or r['b'] or ''
-    for i, (name, pat, ng, _) in enumerate(CHAINS):
+    for i, (name, pat, ng, *_) in enumerate(CHAINS):
         if re.search(pat, text, re.I) and not (ng and re.search(ng, text)):
             found[i].append(r)
             break
@@ -71,11 +83,19 @@ for r in places:
 out = []
 for i, rows in found.items():
     kept = []
-    # 店名の長い方（「〇〇店」まで入っている方）を残す
+    _, pat, _, near, generic_near = CHAINS[i]
+    # 店名の長い方（「〇〇店」まで入っている方）を先に残す
     for r in sorted(rows, key=lambda r: -len(r['n'] or '')):
-        if any(meters(r['y'], r['x'], k['y'], k['x']) < CHAINS[i][3] for k in kept):
-            continue
-        kept.append(r)
+        b = branch(r['n'], pat)
+        dup = False
+        for k in kept:
+            d = meters(r['y'], r['x'], k['y'], k['x'])
+            if d < near or (b and b == k['br'] and d < 3000) or (not b and d < generic_near):
+                dup = True
+                break
+        if not dup:
+            r['br'] = b
+            kept.append(r)
     for r in kept:
         mu = muni(r['y'], r['x'])
         if not mu:
